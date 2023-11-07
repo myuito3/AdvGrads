@@ -1,0 +1,34 @@
+seed: 42
+data: mnist
+model: ptpg_mnist
+checkpoint_path: ./checkpoints/mnist/ptpg/mnist-b07bb66b.pth
+
+attacks:
+  -
+    method: fgsm
+    norm: l_inf
+    eps: 0.3
+    max_iters: 0
+    targeted: false
+  -
+    method: i_fgsm
+    norm: l_inf
+    eps: 0.3
+    max_iters: 10
+    targeted: false
+  -
+    method: mi_fgsm
+    norm: l_inf
+    eps: 0.3
+    max_iters: 10
+    targeted: false
+  -
+    method: square
+    norm: l_inf
+    eps: 0.3
+    max_iters: 10000
+    targeted: false
+    p_init: 0.3
+
+num_images: 1000
+batch_size: 128
