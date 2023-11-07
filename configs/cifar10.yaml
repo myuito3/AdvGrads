@@ -1,0 +1,34 @@
+seed: 42
+data: cifar10
+model: ptpg_cifar10
+checkpoint_path: ./checkpoints/cifar10/ptpg/cifar10-d875770b.pth
+
+attacks:
+  -
+    method: fgsm
+    norm: l_inf
+    eps: 0.05
+    num_iters: 0
+    targeted: false
+  -
+    method: i_fgsm
+    norm: l_inf
+    eps: 0.05
+    max_iters: 10
+    targeted: false
+  -
+    method: mi_fgsm
+    norm: l_inf
+    eps: 0.05
+    max_iters: 10
+    targeted: false
+  -
+    method: square
+    norm: l_inf
+    eps: 0.05
+    max_iters: 10000
+    targeted: false
+    p_init: 0.05
+
+num_images: 1000
+batch_size: 128
