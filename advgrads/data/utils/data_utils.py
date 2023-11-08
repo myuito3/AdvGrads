@@ -14,6 +14,7 @@
 
 """Data utils."""
 
+import os
 from typing import List, Union
 
 from torch import Tensor
@@ -43,4 +44,5 @@ def save_images(images: Tensor, filenames: Union[str, List[str]]) -> None:
     assert len(images) == len(filenames)
 
     for image, filename in zip(images, filenames):
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
         save_image(image, filename)
