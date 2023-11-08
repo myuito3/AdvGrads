@@ -121,6 +121,10 @@ class Attack:
             attack_outputs[ResultHeadNames.QUERIES_SUCCEED] = attack_outputs[
                 ResultHeadNames.QUERIES
             ][cond]
+
+        for key, value in attack_outputs.items():
+            if isinstance(value, Tensor):
+                attack_outputs[key] = value.cpu()
         return attack_outputs
 
     def sanity_check(self, x: Tensor, x_adv: Tensor) -> None:
