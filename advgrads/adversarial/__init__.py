@@ -15,6 +15,7 @@
 """Init adversarial attacks/defenses methods."""
 
 from advgrads.adversarial.attacks.base_attack import AttackConfig
+from advgrads.adversarial.attacks.deepfool import DeepFoolAttackConfig
 from advgrads.adversarial.attacks.fgsm import FgsmAttackConfig
 from advgrads.adversarial.attacks.i_fgsm import IFgsmAttackConfig
 from advgrads.adversarial.attacks.mi_fgsm import MiFgsmAttackConfig
@@ -27,6 +28,7 @@ def get_attack_config_class(name: str) -> AttackConfig:
 
 
 attack_class_dict = {
+    "deepfool": DeepFoolAttackConfig,
     "fgsm": FgsmAttackConfig,
     "i_fgsm": IFgsmAttackConfig,
     "mi_fgsm": MiFgsmAttackConfig,

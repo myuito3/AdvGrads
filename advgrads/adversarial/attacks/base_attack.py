@@ -134,13 +134,16 @@ class Attack:
             x: Original images.
             x_adv: Perturbed images.
         """
-        if self.norm == "l_inf":
-            delta = x_adv - x
-            # Ignore slight differences within the decimal point.
-            assert (
-                delta.abs().max().half() <= self.eps
-            ), f"Perturbations beyond the l_inf sphere ({delta.abs().max().half()})."
-        elif self.norm == "l_2":
-            raise NotImplementedError
-        elif self.norm == "l_0":
-            raise NotImplementedError
+        if self.eps > 0.0:
+            if self.norm == "l_inf":
+                delta = x_adv - x
+                real = (
+                    delta.abs().max().half()
+                )  # ignore slight differences within the decimal point
+                assert (
+                    real <= self.eps
+                ), f"Perturbations beyond the l_inf sphere ({real})."
+            elif self.norm == "l_2":
+                raise NotImplementedError
+            elif self.norm == "l_0":
+                raise NotImplementedError
