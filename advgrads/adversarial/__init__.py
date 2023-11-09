@@ -18,6 +18,7 @@ from advgrads.adversarial.attacks.base_attack import AttackConfig
 from advgrads.adversarial.attacks.fgsm import FgsmAttackConfig
 from advgrads.adversarial.attacks.i_fgsm import IFgsmAttackConfig
 from advgrads.adversarial.attacks.mi_fgsm import MiFgsmAttackConfig
+from advgrads.adversarial.attacks.signhunter import SignHunterAttackConfig
 from advgrads.adversarial.attacks.square import SquareAttackConfig
 
 
@@ -29,6 +30,7 @@ attack_class_dict = {
     "fgsm": FgsmAttackConfig,
     "i_fgsm": IFgsmAttackConfig,
     "mi_fgsm": MiFgsmAttackConfig,
+    "signhunter": SignHunterAttackConfig,
     "square": SquareAttackConfig,
 }
 all_attack_names = list(attack_class_dict.keys())
