@@ -5,7 +5,7 @@
 </div>
 
 ## 🌐 About
-AdvGrads is an all-in-one tool for comprehensive experimentation with adversarial attacks on image recognition. This provides an environment used for research purposes to validate the performance of attack and defense methods in adversarial attacks.
+AdvGrads is an all-in-one tool for comprehensive experimentation with adversarial attacks on image recognition. This repository provides an environment used for research purposes to validate the performance of attack and defense methods in adversarial attacks.
 
 This repository is still under development. For more information, please contact with me (m.yuito3@gmail.com).
 
@@ -60,8 +60,20 @@ python -m pip install -e .
 ```
 
 ## 🚀 Usage
-The attack configs are managed by a YAML file, which can be used as input to call `attack.py` to execute the attack.
+You can execute the attack immediately using the config files provided in this repository.
 
 ```bash
 python advgrads_cli/attack.py --load_config configs/mnist.yaml
 ```
+
+### ⚙ Description format of config files
+The attack configs are managed by a YAML file. The main fields and variables are described below.
+
+- `data`: _(str)_ Specify a dataset for which adversarial examples are to be generated.
+- `model` and `checkpoint_path`: _(str)_ Select a model to be attacked and specify checkpoint file to be loaded to the model. See [here](https://github.com/myuito3/AdvGrads/blob/main/advgrads/models/__init__.py) for currently supported models.
+- `attacks`: _(list)_ This field allows you to specify attack methods that you wish to execute in a list format. You can set values including hyperparameters defined for each method. The parameters that can be specified for all methods are as follows:
+  - `method`: _(str)_ Attack method. See [here](https://github.com/myuito3/AdvGrads/blob/main/advgrads/adversarial/__init__.py) for currently supported attack methods.
+  - `norm`: _(str)_ Norm for adversarial perturbations.
+  - `eps`: _(float)_ Maximum norm constraint.
+  - `max_iters`: _(int)_ Maximum number of iterations used in iterative methods.
+  - `targeted`: _(bool)_ Whether or not to perform targeted attacks which aim to misclassify an adversarial example into a particular class.
