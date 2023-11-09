@@ -40,7 +40,7 @@ class IFgsmAttackConfig(AttackConfig):
 
 
 class IFgsmAttack(Attack):
-    """The numpy implementation of the I-FGSM attack.
+    """The class of the I-FGSM attack.
 
     Args:
         config: The I-FGSM attack configuration.

@@ -46,7 +46,7 @@ class SquareAttackConfig(AttackConfig):
 
 
 class SquareAttack(Attack):
-    """The Square attack class.
+    """The class of the Square attack .
 
     Args:
         config: The Square attack configuration.

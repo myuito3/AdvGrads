@@ -39,7 +39,7 @@ class FgsmAttackConfig(AttackConfig):
 
 
 class FgsmAttack(Attack):
-    """The PyTorch implementation of the FGSM attack.
+    """The class of the FGSM attack.
 
     Args:
         config: The FGSM attack configuration.
