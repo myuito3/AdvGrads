@@ -18,19 +18,41 @@ See their github page (https://github.com/aaron-xichen/pytorch-playground) for t
 original code and trained models.
 """
 
-from typing import Any, List
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any, List, Optional, Type
 
 import torch.nn as nn
 from torch import Tensor
 
-from advgrads.models.base_model import Model
+from advgrads.models.base_model import Model, ModelConfig
+
+
+@dataclass
+class PtPgCifar10ModelConfig(ModelConfig):
+    """Configuration for the pytorch-playground model instantiation."""
+
+    _target: Type = field(default_factory=lambda: PtPgCifar10Model)
+    """Target class to instantiate."""
+    checkpoint_path: Path = Path("checkpoints/cifar10/ptpg/cifar10-d875770b.pth")
+    """Path to the checkpoint file to be loaded."""
+    download_url: Optional[
+        str
+    ] = "http://ml.cs.tsinghua.edu.cn/~chenxi/pytorch-models/cifar10-d875770b.pth"
+    """URL to download the checkpoint file if it is not found."""
 
 
 class PtPgCifar10Model(Model):
-    """The model classifying CIFAR-10 dataset."""
+    """The pytorch-playground model classifying CIFAR-10 dataset.
 
-    def __init__(self) -> None:
-        super().__init__()
+    Args:
+        config: The pytorch-playground model configuration.
+    """
+
+    config: PtPgCifar10ModelConfig
+
+    def __init__(self, config: PtPgCifar10ModelConfig, **kwargs) -> None:
+        super().__init__(config)
         n_channel = 128
 
         source = [

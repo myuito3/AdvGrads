@@ -14,15 +14,44 @@
 
 """Base model class."""
 
+import os
+import requests
 from abc import abstractmethod
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Optional, Type
 
 import torch
 import torch.nn as nn
 from torch import Tensor
 
+from advgrads.configs.base_config import InstantiateConfig
+
+
+@dataclass
+class ModelConfig(InstantiateConfig):
+    """Configuration for the base model instantiation."""
+
+    _target: Type = field(default_factory=lambda: Model)
+    """Target class to instantiate."""
+    checkpoint_path: Path = Path()
+    """Path to the checkpoint file to be loaded."""
+    download_url: Optional[str] = None
+    """URL to download the checkpoint file if it is not found."""
+
 
 class Model(nn.Module):
-    """Base model class for PyTorch."""
+    """Base model class for PyTorch.
+
+    Args:
+        config: The base model configuration.
+    """
+
+    config: ModelConfig
+
+    def __init__(self, config: ModelConfig, **kwargs) -> None:
+        super().__init__()
+        self.config = config
 
     @abstractmethod
     def forward(self, x_input: Tensor) -> Tensor:
@@ -33,12 +62,20 @@ class Model(nn.Module):
         """
         raise NotImplementedError
 
-    def load(self, checkpoint_path: str) -> None:
-        """The function to load checkpoint.
+    def load(self) -> None:
+        """The function to load checkpoint."""
+        if not os.path.exists(self.config.checkpoint_path):
+            self.download()
 
-        Args:
-            checkpoint_path: Path to checkpoint file to be read.
-        """
-        checkpoint = torch.load(checkpoint_path, map_location="cpu")
+        checkpoint = torch.load(self.config.checkpoint_path, map_location="cpu")
         self.load_state_dict(checkpoint)
         self.eval()
+
+    def download(self) -> None:
+        """The function to download the checkpoint file."""
+        assert self.config.download_url is not None
+
+        data = requests.get(self.config.download_url).content
+        os.makedirs(os.path.dirname(self.config.checkpoint_path), exist_ok=True)
+        with open(self.config.checkpoint_path, mode="wb") as file:
+            file.write(data)

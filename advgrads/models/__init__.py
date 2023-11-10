@@ -14,19 +14,21 @@
 
 """Init model configs."""
 
-from advgrads.adversarial.defenses.adv_train.trades.trades_mnist import TradesMnistModel
+from advgrads.adversarial.defenses.adv_train.trades.trades_mnist import (
+    TradesMnistModelConfig,
+)
 from advgrads.models.base_model import Model
-from advgrads.models.pytorch_playground.cifar10_model import PtPgCifar10Model
-from advgrads.models.pytorch_playground.mnist_model import PtPgMnistModel
+from advgrads.models.pytorch_playground.cifar10_model import PtPgCifar10ModelConfig
+from advgrads.models.pytorch_playground.mnist_model import PtPgMnistModelConfig
 
 
-def get_model_class(name: str) -> Model:
-    return model_class_dict[name]
+def get_model_config_class(name: str) -> Model:
+    return model_config_class_dict[name]
 
 
-model_class_dict = {
-    "ptpg_mnist": PtPgMnistModel,
-    "ptpg_cifar10": PtPgCifar10Model,
-    "trades_mnist": TradesMnistModel,
+model_config_class_dict = {
+    "ptpg_mnist": PtPgMnistModelConfig,
+    "ptpg_cifar10": PtPgCifar10ModelConfig,
+    "trades_mnist": TradesMnistModelConfig,
 }
-all_model_names = list(model_class_dict.keys())
+all_model_names = list(model_config_class_dict.keys())

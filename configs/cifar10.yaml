@@ -1,7 +1,6 @@
 seed: 42
 data: cifar10
 model: ptpg_cifar10
-checkpoint_path: ./checkpoints/cifar10/ptpg/cifar10-d875770b.pth
 
 attacks:
   -

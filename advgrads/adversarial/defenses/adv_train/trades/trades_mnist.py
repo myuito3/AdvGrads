@@ -23,18 +23,42 @@ trained models.
 """
 
 from collections import OrderedDict
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Optional, Type
 
 import torch.nn as nn
 from torch import Tensor
 
-from advgrads.models.base_model import Model
+from advgrads.models.base_model import Model, ModelConfig
+
+
+@dataclass
+class TradesMnistModelConfig(ModelConfig):
+    """Configuration for the TRADES model instantiation."""
+
+    _target: Type = field(default_factory=lambda: TradesMnistModel)
+    """Target class to instantiate."""
+    checkpoint_path: Path = Path("checkpoints/mnist/trades/model_mnist_smallcnn.pt")
+    """Path to the checkpoint file to be loaded."""
+    download_url: Optional[str] = (
+        "https://drive.google.com/u/0/uc?"
+        "id=1scTd9-YO3-5Ul3q5SJuRrTNX__LYLD_M&export=download"
+    )
+    """URL to download the checkpoint file if it is not found."""
 
 
 class TradesMnistModel(Model):
-    """The TRADES model classifying MNIST dataset."""
+    """The TRADES model classifying MNIST dataset.
 
-    def __init__(self) -> None:
-        super().__init__()
+    Args:
+        config: The TRADES model configuration.
+    """
+
+    config: TradesMnistModelConfig
+
+    def __init__(self, config: TradesMnistModelConfig, **kwargs) -> None:
+        super().__init__(config)
         activ = nn.ReLU(True)
 
         self.feature_extractor = nn.Sequential(

@@ -1,7 +1,6 @@
 seed: 42
 data: mnist
 model: ptpg_mnist
-checkpoint_path: ./checkpoints/mnist/ptpg/mnist-b07bb66b.pth
 
 attacks:
   -

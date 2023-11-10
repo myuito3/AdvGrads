@@ -26,7 +26,7 @@ from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
 from advgrads.configs.experiment_config import ExperimentConfig, ResultConfig
 from advgrads.data import get_dataset_class
 from advgrads.data.utils.data_utils import get_dataloader
-from advgrads.models import get_model_class
+from advgrads.models import get_model_config_class
 from advgrads.utils.io import load_from_yaml
 from advgrads.utils.metrics import SuccessRateMeter, QueryMeter
 from advgrads.utils.rich_utils import console_log, console_print, Panel
@@ -54,8 +54,9 @@ def main(load_config) -> None:
     dataset = get_dataset_class(config.data)(indices_to_use=image_indices)
     dataloader = get_dataloader(dataset, batch_size=config.batch_size)
 
-    model = get_model_class(config.model)()
-    model.load(config.checkpoint_path)
+    model_config = get_model_config_class(config.model)()
+    model = model_config.setup()
+    model.load()
     model.to(device)
 
     for attack_dict in config.attacks:
