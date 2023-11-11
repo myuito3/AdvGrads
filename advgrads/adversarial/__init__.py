@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Init adversarial attacks/defenses methods."""
+"""Init attack/defense method configs."""
 
 from advgrads.adversarial.attacks.base_attack import AttackConfig
 from advgrads.adversarial.attacks.deepfool import DeepFoolAttackConfig
@@ -28,10 +28,12 @@ from advgrads.adversarial.defenses.input_transform.jpeg_compression import (
 
 
 def get_attack_config_class(name: str) -> AttackConfig:
+    assert name in all_attack_names, f"Attack method named '{name}' not found."
     return attack_class_dict[name]
 
 
 def get_defense_config_class(name: str) -> DefenseConfig:
+    assert name in all_defense_names, f"Defense method named '{name}' not found."
     return defense_class_dict[name]
 
 

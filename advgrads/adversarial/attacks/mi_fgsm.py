@@ -36,7 +36,7 @@ from advgrads.models.base_model import Model
 
 @dataclass
 class MiFgsmAttackConfig(AttackConfig):
-    """The configuration class for MI-FGSM attack."""
+    """The configuration class for the MI-FGSM attack."""
 
     _target: Type = field(default_factory=lambda: MiFgsmAttack)
     """Target class to instantiate."""

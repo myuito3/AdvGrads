@@ -31,7 +31,7 @@ from advgrads.models.base_model import Model, ModelConfig
 
 @dataclass
 class PtPgMnistModelConfig(ModelConfig):
-    """Configuration for the pytorch-playground model instantiation."""
+    """The configuration class for the pytorch-playground model."""
 
     _target: Type = field(default_factory=lambda: PtPgMnistModel)
     """Target class to instantiate."""
@@ -52,7 +52,7 @@ class PtPgMnistModel(Model):
 
     config: PtPgMnistModelConfig
 
-    def __init__(self, config: PtPgMnistModelConfig, **kwargs) -> None:
+    def __init__(self, config: PtPgMnistModelConfig) -> None:
         super().__init__(config)
         self.input_dims = 784
 

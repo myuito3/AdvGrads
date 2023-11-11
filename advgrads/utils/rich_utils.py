@@ -24,10 +24,18 @@ CONSOLE = Console(width=120)
 
 
 def console_print(msg: Any) -> None:
-    """Print message via rich console."""
+    """Print message via rich console.
+
+    Args:
+        msg: Message outputed in terminal.
+    """
     CONSOLE.print(msg)
 
 
 def console_log(msg: Any) -> None:
-    """Log message via rich console."""
+    """Log message via rich console.
+
+    Args:
+        msg: Message outputed in terminal.
+    """
     CONSOLE.log(msg)

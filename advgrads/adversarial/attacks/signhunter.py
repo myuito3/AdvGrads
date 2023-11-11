@@ -34,7 +34,7 @@ from advgrads.models.base_model import Model
 
 @dataclass
 class SignHunterAttackConfig(AttackConfig):
-    """The configuration class for SignHunter attack."""
+    """The configuration class for the SignHunter attack."""
 
     _target: Type = field(default_factory=lambda: SignHunterAttack)
     """Target class to instantiate."""
@@ -49,8 +49,8 @@ class SignHunterAttack(Attack):
 
     config: SignHunterAttackConfig
 
-    def __init__(self, config: SignHunterAttackConfig, **kwargs) -> None:
-        super().__init__(config, **kwargs)
+    def __init__(self, config: SignHunterAttackConfig) -> None:
+        super().__init__(config)
 
         self.loss = (
             nn.CrossEntropyLoss(reduction="none")

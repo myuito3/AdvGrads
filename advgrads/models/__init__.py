@@ -23,6 +23,7 @@ from advgrads.models.pytorch_playground.mnist_model import PtPgMnistModelConfig
 
 
 def get_model_config_class(name: str) -> Model:
+    assert name in all_model_names, f"Model named '{name}' not found."
     return model_config_class_dict[name]
 
 

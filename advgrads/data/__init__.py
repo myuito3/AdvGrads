@@ -23,6 +23,7 @@ from advgrads.data.datasets.vision_dataset import (
 
 
 def get_dataset_class(name: str) -> Dataset:
+    assert name in all_dataset_names, f"Dataset named '{name}' not found."
     return dataset_class_dict[name]
 
 

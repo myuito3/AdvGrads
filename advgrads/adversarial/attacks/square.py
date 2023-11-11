@@ -37,7 +37,7 @@ from advgrads.models.base_model import Model
 
 @dataclass
 class SquareAttackConfig(AttackConfig):
-    """The configuration class for Square attack."""
+    """The configuration class for the Square attack."""
 
     _target: Type = field(default_factory=lambda: SquareAttack)
     """Target class to instantiate."""
@@ -46,7 +46,7 @@ class SquareAttackConfig(AttackConfig):
 
 
 class SquareAttack(Attack):
-    """The class of the Square attack .
+    """The class of the Square attack.
 
     Args:
         config: The Square attack configuration.
@@ -54,8 +54,8 @@ class SquareAttack(Attack):
 
     config: SquareAttackConfig
 
-    def __init__(self, config: SquareAttackConfig, **kwargs) -> None:
-        super().__init__(config, **kwargs)
+    def __init__(self, config: SquareAttackConfig) -> None:
+        super().__init__(config)
 
         self.loss = (
             nn.CrossEntropyLoss(reduction="none")

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Base class for adversarial attack methods."""
+"""Base class for attack methods."""
 
 from abc import abstractmethod
 from dataclasses import dataclass, field
@@ -29,7 +29,7 @@ from advgrads.models.base_model import Model
 
 @dataclass
 class AttackConfig(InstantiateConfig):
-    """Configuration for attack methods."""
+    """The base configuration class for attack methods."""
 
     _target: Type = field(default_factory=lambda: Attack)
     """Target class to instantiate."""
@@ -48,7 +48,7 @@ class AttackConfig(InstantiateConfig):
 
 
 class Attack:
-    """Base class for attack methods.
+    """The base class for attack methods.
 
     Args:
         config: Configuration for attack methods.
@@ -112,13 +112,14 @@ class Attack:
         Args:
             x: Images to be searched for adversarial examples.
             y: Ground truth labels of images.
-            model: A model under attack.
+            model: A model to be attacked.
+            thirdparty_defense: Thirdparty defense method instance.
         """
         attack_outputs = self.run_attack(x, y, model, **kwargs)
         self.sanity_check(x, attack_outputs[ResultHeadNames.X_ADV])
 
         # If a defensive method is defined, the process is performed here. This
-        # corresponds to Section 5.2 (GRAY BOX: IMAGE TRANSFORMATIONS AT TEST TIME) of
+        # corresponds to Section 5.2 (GRAY BOX: IMAGE TRANSFORMATIONS AT TEST TIME) in
         # the paper of Guo et al.
         if thirdparty_defense is not None:
             attack_outputs[ResultHeadNames.X_ADV] = thirdparty_defense(

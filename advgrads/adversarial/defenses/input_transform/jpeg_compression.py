@@ -23,9 +23,9 @@ from io import BytesIO
 from typing import Type
 
 import torch
+import torchvision.transforms.functional as F
 from PIL import Image
 from torch import Tensor
-from torchvision import transforms
 
 from advgrads.adversarial.defenses.input_transform.base_defense import (
     Defense,
@@ -35,7 +35,7 @@ from advgrads.adversarial.defenses.input_transform.base_defense import (
 
 @dataclass
 class JpegCompressionDefenseConfig(DefenseConfig):
-    """Configuration for the JPEG Compression defense."""
+    """The configuration class for the JPEG Compression defense."""
 
     _target: Type = field(default_factory=lambda: JpegCompressionDefense)
     """Target class to instantiate."""
@@ -52,19 +52,13 @@ class JpegCompressionDefense(Defense):
 
     config: JpegCompressionDefenseConfig
 
-    def __init__(self, config: JpegCompressionDefenseConfig) -> None:
-        super().__init__(config)
-
-        self.to_pil = transforms.ToPILImage()
-        self.to_tensor = transforms.ToTensor()
-
     def run_defense(self, x: Tensor) -> Tensor:
         x_defended = torch.zeros_like(x, device=x.device)
 
         for i_img in range(x.shape[0]):
-            x_i_pil = self.to_pil(x[i_img].detach().clone().cpu())
+            x_i_pil = F.to_pil_image(x[i_img].detach().clone().cpu())
             buffer = BytesIO()
             x_i_pil.save(buffer, format="JPEG", quality=self.config.quality)
-            x_defended[i_img] = self.to_tensor(Image.open(buffer)).to(x.device)
+            x_defended[i_img] = F.to_tensor(Image.open(buffer)).to(x.device)
 
         return x_defended

@@ -31,7 +31,7 @@ from advgrads.models.base_model import Model
 
 @dataclass
 class DeepFoolAttackConfig(AttackConfig):
-    """The configuration class for DeepFool attack."""
+    """The configuration class for the DeepFool attack."""
 
     _target: Type = field(default_factory=lambda: DeepFoolAttack)
     """Target class to instantiate."""
@@ -48,8 +48,8 @@ class DeepFoolAttack(Attack):
 
     config: DeepFoolAttackConfig
 
-    def __init__(self, config: DeepFoolAttackConfig, **kwargs) -> None:
-        super().__init__(config, **kwargs)
+    def __init__(self, config: DeepFoolAttackConfig) -> None:
+        super().__init__(config)
 
         if self.targeted:
             raise ValueError("DeepFool does not support targeted attack.")
