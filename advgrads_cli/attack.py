@@ -25,6 +25,7 @@ from advgrads.adversarial import get_attack_config_class
 from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
 from advgrads.configs.experiment_config import ExperimentConfig, ResultConfig
 from advgrads.data import get_dataset_class
+from advgrads.data.utils import index_samplers
 from advgrads.data.utils.data_utils import get_dataloader
 from advgrads.models import get_model_config_class
 from advgrads.utils.io import load_from_yaml
@@ -49,7 +50,9 @@ def main(load_config) -> None:
     config.__dict__.update(load_from_yaml(Path(load_config)))
 
     image_indices = (
-        list(range(config.num_images)) if config.num_images is not None else None
+        index_samplers.get_arange(config.num_images)
+        if config.num_images is not None
+        else None
     )
     dataset = get_dataset_class(config.data)(indices_to_use=image_indices)
     dataloader = get_dataloader(dataset, batch_size=config.batch_size)
