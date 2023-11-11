@@ -22,6 +22,7 @@ import torch
 from torch import Tensor
 
 from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
+from advgrads.adversarial.defenses.input_transform.base_defense import Defense
 from advgrads.configs.base_config import InstantiateConfig
 from advgrads.models.base_model import Model
 
@@ -99,7 +100,12 @@ class Attack:
         raise NotImplementedError
 
     def get_outputs(
-        self, x: Tensor, y: Tensor, model: Model, **kwargs
+        self,
+        x: Tensor,
+        y: Tensor,
+        model: Model,
+        thirdparty_defense: Optional[Defense] = None,
+        **kwargs,
     ) -> Dict[ResultHeadNames, Any]:
         """Returns raw attack results processed.
 
@@ -111,6 +117,14 @@ class Attack:
         attack_outputs = self.run_attack(x, y, model, **kwargs)
         self.sanity_check(x, attack_outputs[ResultHeadNames.X_ADV])
 
+        # If a defensive method is defined, the process is performed here. This
+        # corresponds to Section 5.2 (GRAY BOX: IMAGE TRANSFORMATIONS AT TEST TIME) of
+        # the paper of Guo et al.
+        if thirdparty_defense is not None:
+            attack_outputs[ResultHeadNames.X_ADV] = thirdparty_defense(
+                attack_outputs[ResultHeadNames.X_ADV]
+            )
+
         with torch.no_grad():
             logits = model(attack_outputs[ResultHeadNames.X_ADV])
         preds = torch.argmax(logits, dim=-1)
@@ -121,6 +135,10 @@ class Attack:
             attack_outputs[ResultHeadNames.QUERIES_SUCCEED] = attack_outputs[
                 ResultHeadNames.QUERIES
             ][cond]
+
+        for key, value in attack_outputs.items():
+            if isinstance(value, Tensor):
+                attack_outputs[key] = value.cpu()
         return attack_outputs
 
     def sanity_check(self, x: Tensor, x_adv: Tensor) -> None:
@@ -130,13 +148,16 @@ class Attack:
             x: Original images.
             x_adv: Perturbed images.
         """
-        if self.norm == "l_inf":
-            delta = x_adv - x
-            # Ignore slight differences within the decimal point.
-            assert (
-                delta.abs().max().half() <= self.eps
-            ), f"Perturbations beyond the l_inf sphere ({delta.abs().max().half()})."
-        elif self.norm == "l_2":
-            raise NotImplementedError
-        elif self.norm == "l_0":
-            raise NotImplementedError
+        if self.eps > 0.0:
+            if self.norm == "l_inf":
+                delta = x_adv - x
+                real = (
+                    delta.abs().max().half()
+                )  # ignore slight differences within the decimal point
+                assert (
+                    real <= self.eps
+                ), f"Perturbations beyond the l_inf sphere ({real})."
+            elif self.norm == "l_2":
+                raise NotImplementedError
+            elif self.norm == "l_0":
+                raise NotImplementedError

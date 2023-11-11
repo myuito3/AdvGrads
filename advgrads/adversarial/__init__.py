@@ -15,20 +15,37 @@
 """Init adversarial attacks/defenses methods."""
 
 from advgrads.adversarial.attacks.base_attack import AttackConfig
+from advgrads.adversarial.attacks.deepfool import DeepFoolAttackConfig
 from advgrads.adversarial.attacks.fgsm import FgsmAttackConfig
 from advgrads.adversarial.attacks.i_fgsm import IFgsmAttackConfig
 from advgrads.adversarial.attacks.mi_fgsm import MiFgsmAttackConfig
+from advgrads.adversarial.attacks.signhunter import SignHunterAttackConfig
 from advgrads.adversarial.attacks.square import SquareAttackConfig
+from advgrads.adversarial.defenses.input_transform.base_defense import DefenseConfig
+from advgrads.adversarial.defenses.input_transform.jpeg_compression import (
+    JpegCompressionDefenseConfig,
+)
 
 
 def get_attack_config_class(name: str) -> AttackConfig:
     return attack_class_dict[name]
 
 
+def get_defense_config_class(name: str) -> DefenseConfig:
+    return defense_class_dict[name]
+
+
 attack_class_dict = {
+    "deepfool": DeepFoolAttackConfig,
     "fgsm": FgsmAttackConfig,
     "i_fgsm": IFgsmAttackConfig,
     "mi_fgsm": MiFgsmAttackConfig,
+    "signhunter": SignHunterAttackConfig,
     "square": SquareAttackConfig,
 }
 all_attack_names = list(attack_class_dict.keys())
+
+defense_class_dict = {
+    "jpeg": JpegCompressionDefenseConfig,
+}
+all_defense_names = list(defense_class_dict.keys())

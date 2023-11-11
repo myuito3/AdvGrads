@@ -45,7 +45,7 @@ class MiFgsmAttackConfig(AttackConfig):
 
 
 class MiFgsmAttack(Attack):
-    """The numpy implementation of the MI-FGSM attack.
+    """The class of the MI-FGSM attack.
 
     Args:
         config: The MI-FGSM attack configuration.

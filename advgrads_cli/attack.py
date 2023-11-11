@@ -21,12 +21,13 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from advgrads.adversarial import get_attack_config_class
+from advgrads.adversarial import get_attack_config_class, get_defense_config_class
 from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
 from advgrads.configs.experiment_config import ExperimentConfig, ResultConfig
 from advgrads.data import get_dataset_class
+from advgrads.data.utils import index_samplers
 from advgrads.data.utils.data_utils import get_dataloader
-from advgrads.models import get_model_class
+from advgrads.models import get_model_config_class
 from advgrads.utils.io import load_from_yaml
 from advgrads.utils.metrics import SuccessRateMeter, QueryMeter
 from advgrads.utils.rich_utils import console_log, console_print, Panel
@@ -49,14 +50,22 @@ def main(load_config) -> None:
     config.__dict__.update(load_from_yaml(Path(load_config)))
 
     image_indices = (
-        list(range(config.num_images)) if config.num_images is not None else None
+        index_samplers.get_arange(config.num_images)
+        if config.num_images is not None
+        else None
     )
     dataset = get_dataset_class(config.data)(indices_to_use=image_indices)
     dataloader = get_dataloader(dataset, batch_size=config.batch_size)
 
-    model = get_model_class(config.model)()
-    model.load(config.checkpoint_path)
+    model_config = get_model_config_class(config.model)()
+    model = model_config.setup()
+    model.load()
     model.to(device)
+
+    defense = None
+    if config.thirdparty_defense is not None:
+        defense_config = get_defense_config_class(config.thirdparty_defense)()
+        defense = defense_config.setup()
 
     for attack_dict in config.attacks:
         _set_random_seed(config.seed)
@@ -74,7 +83,7 @@ def main(load_config) -> None:
                 labels = (labels + 1) % dataset.num_classes
 
             images, labels = images.to(device), labels.to(device)
-            attack_outputs = attack(images, labels, model)
+            attack_outputs = attack(images, labels, model, thirdparty_defense=defense)
 
             if ResultHeadNames.NUM_SUCCEED in attack_outputs.keys():
                 success_rate_meter.update(
@@ -99,6 +108,8 @@ def main(load_config) -> None:
 
         result_config = ResultConfig()
         result_config.__dict__.update(config.__dict__)
+        if config.thirdparty_defense is not None:
+            result_config.__dict__.update(defense_config.__dict__)
         result_config.__dict__.update(attack_config.__dict__)
         result_config.__dict__.update(outputs)
         result_config.save_config()

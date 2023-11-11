@@ -46,7 +46,7 @@ class SquareAttackConfig(AttackConfig):
 
 
 class SquareAttack(Attack):
-    """The Square attack class.
+    """The class of the Square attack .
 
     Args:
         config: The Square attack configuration.
@@ -146,7 +146,7 @@ class SquareAttack(Attack):
         self, x: Tensor, y: Tensor, model: Model
     ) -> Dict[ResultHeadNames, Tensor]:
         c, h, w = x.shape[1:]
-        n_queries = torch.zeros((x.shape[0]), dtype=torch.int16)
+        n_queries = torch.zeros((x.shape[0]), dtype=torch.int16).to(x.device)
 
         # [1, w, c], i.e. vertical stripes work best for untargeted attacks
         init_delta = torch.from_numpy(

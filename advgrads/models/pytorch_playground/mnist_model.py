@@ -19,18 +19,41 @@ original code and trained models.
 """
 
 from collections import OrderedDict
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Optional, Type
 
 import torch.nn as nn
 from torch import Tensor
 
-from advgrads.models.base_model import Model
+from advgrads.models.base_model import Model, ModelConfig
+
+
+@dataclass
+class PtPgMnistModelConfig(ModelConfig):
+    """Configuration for the pytorch-playground model instantiation."""
+
+    _target: Type = field(default_factory=lambda: PtPgMnistModel)
+    """Target class to instantiate."""
+    checkpoint_path: Path = Path("checkpoints/mnist/ptpg/mnist-b07bb66b.pth")
+    """Path to the checkpoint file to be loaded."""
+    download_url: Optional[
+        str
+    ] = "http://ml.cs.tsinghua.edu.cn/~chenxi/pytorch-models/mnist-b07bb66b.pth"
+    """URL to download the checkpoint file if it is not found."""
 
 
 class PtPgMnistModel(Model):
-    """The model classifying MNIST dataset."""
+    """The pytorch-playground model classifying MNIST dataset.
 
-    def __init__(self) -> None:
-        super().__init__()
+    Args:
+        config: The pytorch-playground model configuration.
+    """
+
+    config: PtPgMnistModelConfig
+
+    def __init__(self, config: PtPgMnistModelConfig, **kwargs) -> None:
+        super().__init__(config)
         self.input_dims = 784
 
         n_hiddens = [256, 256]
