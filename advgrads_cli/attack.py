@@ -21,7 +21,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from advgrads.adversarial import get_attack_config_class
+from advgrads.adversarial import get_attack_config_class, get_defense_config_class
 from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
 from advgrads.configs.experiment_config import ExperimentConfig, ResultConfig
 from advgrads.data import get_dataset_class
@@ -62,6 +62,11 @@ def main(load_config) -> None:
     model.load()
     model.to(device)
 
+    defense = None
+    if config.thirdparty_defense is not None:
+        defense_config = get_defense_config_class(config.thirdparty_defense)()
+        defense = defense_config.setup()
+
     for attack_dict in config.attacks:
         _set_random_seed(config.seed)
 
@@ -78,7 +83,7 @@ def main(load_config) -> None:
                 labels = (labels + 1) % dataset.num_classes
 
             images, labels = images.to(device), labels.to(device)
-            attack_outputs = attack(images, labels, model)
+            attack_outputs = attack(images, labels, model, thirdparty_defense=defense)
 
             if ResultHeadNames.NUM_SUCCEED in attack_outputs.keys():
                 success_rate_meter.update(
@@ -103,6 +108,8 @@ def main(load_config) -> None:
 
         result_config = ResultConfig()
         result_config.__dict__.update(config.__dict__)
+        if config.thirdparty_defense is not None:
+            result_config.__dict__.update(defense_config.__dict__)
         result_config.__dict__.update(attack_config.__dict__)
         result_config.__dict__.update(outputs)
         result_config.save_config()

@@ -22,6 +22,7 @@ import torch
 from torch import Tensor
 
 from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
+from advgrads.adversarial.defenses.input_transform.base_defense import Defense
 from advgrads.configs.base_config import InstantiateConfig
 from advgrads.models.base_model import Model
 
@@ -99,7 +100,12 @@ class Attack:
         raise NotImplementedError
 
     def get_outputs(
-        self, x: Tensor, y: Tensor, model: Model, **kwargs
+        self,
+        x: Tensor,
+        y: Tensor,
+        model: Model,
+        thirdparty_defense: Optional[Defense] = None,
+        **kwargs,
     ) -> Dict[ResultHeadNames, Any]:
         """Returns raw attack results processed.
 
@@ -110,6 +116,14 @@ class Attack:
         """
         attack_outputs = self.run_attack(x, y, model, **kwargs)
         self.sanity_check(x, attack_outputs[ResultHeadNames.X_ADV])
+
+        # If a defensive method is defined, the process is performed here. This
+        # corresponds to Section 5.2 (GRAY BOX: IMAGE TRANSFORMATIONS AT TEST TIME) of
+        # the paper of Guo et al.
+        if thirdparty_defense is not None:
+            attack_outputs[ResultHeadNames.X_ADV] = thirdparty_defense(
+                attack_outputs[ResultHeadNames.X_ADV]
+            )
 
         with torch.no_grad():
             logits = model(attack_outputs[ResultHeadNames.X_ADV])

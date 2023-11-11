@@ -39,6 +39,8 @@ class ExperimentConfig:
     """Number of images used for the attack."""
     batch_size: Optional[int] = None
     """Number of images per batch."""
+    thirdparty_defense: Optional[str] = None
+    """Name of thirdparty defense method."""
 
 
 @dataclass
