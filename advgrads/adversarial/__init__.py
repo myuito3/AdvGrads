@@ -19,6 +19,7 @@ from advgrads.adversarial.attacks.deepfool import DeepFoolAttackConfig
 from advgrads.adversarial.attacks.fgsm import FgsmAttackConfig
 from advgrads.adversarial.attacks.i_fgsm import IFgsmAttackConfig
 from advgrads.adversarial.attacks.mi_fgsm import MiFgsmAttackConfig
+from advgrads.adversarial.attacks.pgd import PGDAttackConfig
 from advgrads.adversarial.attacks.signhunter import SignHunterAttackConfig
 from advgrads.adversarial.attacks.square import SquareAttackConfig
 from advgrads.adversarial.defenses.input_transform.base_defense import DefenseConfig
@@ -42,6 +43,7 @@ attack_class_dict = {
     "fgsm": FgsmAttackConfig,
     "i_fgsm": IFgsmAttackConfig,
     "mi_fgsm": MiFgsmAttackConfig,
+    "pgd": PGDAttackConfig,
     "signhunter": SignHunterAttackConfig,
     "square": SquareAttackConfig,
 }
