@@ -26,6 +26,9 @@ from advgrads.adversarial.defenses.input_transform.base_defense import DefenseCo
 from advgrads.adversarial.defenses.input_transform.jpeg_compression import (
     JpegCompressionDefenseConfig,
 )
+from advgrads.adversarial.defenses.input_transform.randomization import (
+    RandomizationDefenseConfig,
+)
 
 
 def get_attack_config_class(name: str) -> AttackConfig:
@@ -51,5 +54,6 @@ all_attack_names = list(attack_class_dict.keys())
 
 defense_class_dict = {
     "jpeg": JpegCompressionDefenseConfig,
+    "randomization": RandomizationDefenseConfig,
 }
 all_defense_names = list(defense_class_dict.keys())
