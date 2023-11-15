@@ -23,6 +23,9 @@ from advgrads.adversarial.attacks.pgd import PGDAttackConfig
 from advgrads.adversarial.attacks.signhunter import SignHunterAttackConfig
 from advgrads.adversarial.attacks.square import SquareAttackConfig
 from advgrads.adversarial.defenses.input_transform.base_defense import DefenseConfig
+from advgrads.adversarial.defenses.input_transform.bit_depth_reduction import (
+    BitDepthReductionDefenseConfig,
+)
 from advgrads.adversarial.defenses.input_transform.jpeg_compression import (
     JpegCompressionDefenseConfig,
 )
@@ -53,6 +56,7 @@ attack_class_dict = {
 all_attack_names = list(attack_class_dict.keys())
 
 defense_class_dict = {
+    "bit": BitDepthReductionDefenseConfig,
     "jpeg": JpegCompressionDefenseConfig,
     "randomization": RandomizationDefenseConfig,
 }
