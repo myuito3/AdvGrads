@@ -22,6 +22,7 @@ from advgrads.adversarial.attacks.mi_fgsm import MiFgsmAttackConfig
 from advgrads.adversarial.attacks.ni_fgsm import NiFgsmAttackConfig
 from advgrads.adversarial.attacks.pgd import PGDAttackConfig
 from advgrads.adversarial.attacks.signhunter import SignHunterAttackConfig
+from advgrads.adversarial.attacks.simba import SimBAAttackConfig
 from advgrads.adversarial.attacks.square import SquareAttackConfig
 from advgrads.adversarial.defenses.input_transform.base_defense import DefenseConfig
 from advgrads.adversarial.defenses.input_transform.bit_depth_reduction import (
@@ -53,6 +54,7 @@ attack_class_dict = {
     "ni_fgsm": NiFgsmAttackConfig,
     "pgd": PGDAttackConfig,
     "signhunter": SignHunterAttackConfig,
+    "simba": SimBAAttackConfig,
     "square": SquareAttackConfig,
 }
 all_attack_names = list(attack_class_dict.keys())
