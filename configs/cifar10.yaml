@@ -1,6 +1,6 @@
 seed: 42
 data: cifar10
-model: ptpg_cifar10
+model: ptpg-cifar10
 
 attacks:
   -
@@ -10,13 +10,13 @@ attacks:
     num_iters: 0
     targeted: false
   -
-    method: i_fgsm
+    method: i-fgsm
     norm: l_inf
     eps: 0.05
     max_iters: 10
     targeted: false
   -
-    method: mi_fgsm
+    method: mi-fgsm
     norm: l_inf
     eps: 0.05
     max_iters: 10

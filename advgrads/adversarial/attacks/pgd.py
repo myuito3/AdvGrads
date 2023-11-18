@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implementation of the Projected Gradient Descent (PGD) attack.
+"""The implementation of the Projected Gradient Descent (PGD) attack.
 
 Paper: Towards Deep Learning Models Resistant to Adversarial Attacks
 Url: https://arxiv.org/abs/1706.06083
@@ -52,26 +52,23 @@ class PGDAttack(Attack):
     def run_attack(
         self, x: Tensor, y: Tensor, model: Model
     ) -> Dict[ResultHeadNames, Tensor]:
-        x_adv = x.clone().detach()
         alpha = self.eps / self.max_iters
 
-        # Add perturbations generated from a continuous uniform distribution.
-        x_adv = x_adv + torch.empty_like(x_adv).uniform_(-self.eps, self.eps)
-        x_adv = x_adv.clamp(min=self.min_val, max=self.max_val)
+        # Generate initial perturbations from a continuous uniform distribution.
+        init_deltas = torch.empty_like(x).uniform_(-self.eps, self.eps)
+        x_adv = torch.clamp(x + init_deltas, min=self.min_val, max=self.max_val)
 
         for _ in range(self.max_iters):
             x_adv = x_adv.clone().detach().requires_grad_(True)
+            model.zero_grad()
 
             logits = model(x_adv)
-            loss = F.cross_entropy(logits, torch.as_tensor(y, dtype=torch.long))
-            model.zero_grad()
-            loss.backward()
-            gradients_raw = x_adv.grad.data.detach()
-
+            loss = F.cross_entropy(logits, y)
             if self.targeted:
-                gradients_raw *= -1
+                loss *= -1
+            gradients = torch.autograd.grad(loss, [x_adv])[0].detach()
 
-            x_adv = x_adv + alpha * gradients_raw.sign()
+            x_adv = x_adv + alpha * torch.sign(gradients)
             deltas = torch.clamp(x_adv - x, min=-self.eps, max=self.eps)
             x_adv = torch.clamp(x + deltas, min=self.min_val, max=self.max_val)
 

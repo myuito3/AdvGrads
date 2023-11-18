@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implementation of the I-FGSM attack. This method is also called Basic Iterative
-Method (BIM).
+"""The implementation of the Iterative Fast Gradient Sign Method (I-FGSM) attack. This
+method is also called Basic Iterative Method (BIM).
 
 Paper: Adversarial examples in the physical world
 Url: https://arxiv.org/abs/1607.02533
@@ -58,17 +58,15 @@ class IFgsmAttack(Attack):
 
         for _ in range(self.max_iters):
             x_adv = x_adv.clone().detach().requires_grad_(True)
+            model.zero_grad()
 
             logits = model(x_adv)
-            loss = F.cross_entropy(logits, torch.as_tensor(y, dtype=torch.long))
-            model.zero_grad()
-            loss.backward()
-            gradients_raw = x_adv.grad.data.detach()
-
+            loss = F.cross_entropy(logits, y)
             if self.targeted:
-                gradients_raw *= -1
+                loss *= -1
+            gradients = torch.autograd.grad(loss, [x_adv])[0].detach()
 
-            x_adv = x_adv + alpha * gradients_raw.sign()
-            x_adv = x_adv.clamp(min=self.min_val, max=self.max_val)
+            x_adv = x_adv + alpha * torch.sign(gradients)
+            x_adv = torch.clamp(x_adv, min=self.min_val, max=self.max_val)
 
         return {ResultHeadNames.X_ADV: x_adv}

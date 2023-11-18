@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implementation of the Simple Black-box Attack (SimBA) attack.
+"""The implementation of the Simple Black-box Attack (SimBA) attack.
 
 Paper: Simple Black-box Adversarial Attacks
 Url: https://arxiv.org/abs/1905.07121

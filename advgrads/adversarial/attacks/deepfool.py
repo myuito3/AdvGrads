@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implementation of the DeepFool attack.
+"""The implementation of the DeepFool attack.
 
 Paper: DeepFool: a simple and accurate method to fool deep neural networks
 Url: https://arxiv.org/abs/1511.04599

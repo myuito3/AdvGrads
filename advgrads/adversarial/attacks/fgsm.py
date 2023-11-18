@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implementation of the FGSM attack.
+"""The implementation of the Fast Gradient Sign Method (FGSM) attack.
 
 Paper: Explaining and Harnessing Adversarial Examples
 Url: https://arxiv.org/abs/1412.6572
@@ -53,16 +53,14 @@ class FgsmAttack(Attack):
         self, x: Tensor, y: Tensor, model: Model
     ) -> Dict[ResultHeadNames, Tensor]:
         x_adv = x.clone().detach().requires_grad_(True)
+        model.zero_grad()
 
         logits = model(x_adv)
-        loss = F.cross_entropy(logits, torch.as_tensor(y, dtype=torch.long))
-        model.zero_grad()
-        loss.backward()
-        gradients_raw = x_adv.grad.data.detach()
-
+        loss = F.cross_entropy(logits, y)
         if self.targeted:
-            gradients_raw *= -1
+            loss *= -1
+        gradients = torch.autograd.grad(loss, [x_adv])[0].detach()
 
-        x_adv = x_adv + self.eps * gradients_raw.sign()
-        x_adv = x_adv.clamp(min=self.min_val, max=self.max_val)
+        x_adv = x_adv + self.eps * torch.sign(gradients)
+        x_adv = torch.clamp(x_adv, min=self.min_val, max=self.max_val)
         return {ResultHeadNames.X_ADV: x_adv}

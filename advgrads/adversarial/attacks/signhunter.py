@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implementation of the SignHunter attack.
+"""The implementation of the SignHunter attack.
 
 Paper: Sign Bits Are All You Need for Black-Box Attacks
 Url: https://openreview.net/forum?id=SygW0TEFwH
@@ -93,7 +93,7 @@ class SignHunterAttack(Attack):
             margin_min_curr = margin_min[idx_to_fool]
             loss_min_curr = loss_min[idx_to_fool]
 
-            # Generate candidates for new adversarial examples
+            # Generate candidates for new adversarial examples.
             chunk_len = np.ceil(n_dim / (2**h)).astype(int)
             istart = i * chunk_len
             iend = min(n_dim, (i + 1) * chunk_len)
@@ -109,7 +109,7 @@ class SignHunterAttack(Attack):
             loss = self.loss(logits, y_curr)
             margin = self.margin(logits, y_curr)
 
-            # Update current loss values and adversarial examples
+            # Update current loss values and adversarial examples.
             idx_improved = loss < loss_min_curr
             loss_min[idx_to_fool] = idx_improved * loss + ~idx_improved * loss_min_curr
             margin_min[idx_to_fool] = (

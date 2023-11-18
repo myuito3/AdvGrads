@@ -49,9 +49,9 @@ def get_defense_config_class(name: str) -> DefenseConfig:
 attack_class_dict = {
     "deepfool": DeepFoolAttackConfig,
     "fgsm": FgsmAttackConfig,
-    "i_fgsm": IFgsmAttackConfig,
-    "mi_fgsm": MiFgsmAttackConfig,
-    "ni_fgsm": NiFgsmAttackConfig,
+    "i-fgsm": IFgsmAttackConfig,
+    "mi-fgsm": MiFgsmAttackConfig,
+    "ni-fgsm": NiFgsmAttackConfig,
     "pgd": PGDAttackConfig,
     "signhunter": SignHunterAttackConfig,
     "simba": SimBAAttackConfig,
@@ -60,7 +60,7 @@ attack_class_dict = {
 all_attack_names = list(attack_class_dict.keys())
 
 defense_class_dict = {
-    "bit": BitDepthReductionDefenseConfig,
+    "bit-red": BitDepthReductionDefenseConfig,
     "jpeg": JpegCompressionDefenseConfig,
     "randomization": RandomizationDefenseConfig,
 }

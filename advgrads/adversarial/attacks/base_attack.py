@@ -135,7 +135,7 @@ class Attack:
 
         # If a defensive method is defined, the process is performed here. This
         # corresponds to Section 5.2 (GRAY BOX: IMAGE TRANSFORMATIONS AT TEST TIME) in
-        # the paper of Guo et al.
+        # the paper of Guo et al [https://arxiv.org/pdf/1711.00117.pdf].
         if thirdparty_defense is not None:
             attack_outputs[ResultHeadNames.X_ADV] = thirdparty_defense(
                 attack_outputs[ResultHeadNames.X_ADV]

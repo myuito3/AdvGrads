@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implementation of the Randomization defense.
+"""The implementation of the Randomization defense.
 
 Paper: Mitigating Adversarial Effects Through Randomization
 Url: https://arxiv.org/abs/1711.01991

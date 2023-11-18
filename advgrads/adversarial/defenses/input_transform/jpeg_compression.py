@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implementation of the JPEG Compression defense.
+"""The implementation of the JPEG Compression defense.
 
 Paper: A study of the effect of JPG compression on adversarial images
 Url: https://arxiv.org/abs/1608.00853

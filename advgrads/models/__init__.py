@@ -28,8 +28,8 @@ def get_model_config_class(name: str) -> Model:
 
 
 model_config_class_dict = {
-    "ptpg_mnist": PtPgMnistModelConfig,
-    "ptpg_cifar10": PtPgCifar10ModelConfig,
-    "trades_mnist": TradesMnistModelConfig,
+    "ptpg-mnist": PtPgMnistModelConfig,
+    "ptpg-cifar10": PtPgCifar10ModelConfig,
+    "trades-mnist": TradesMnistModelConfig,
 }
 all_model_names = list(model_config_class_dict.keys())

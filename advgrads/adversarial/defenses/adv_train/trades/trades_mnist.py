@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""The TRADES (TRadeoff-inspired Adversarial DEfense via Surrogate-loss minimization)
-model.
+"""The implementation of the TRadeoff-inspired Adversarial DEfense via Surrogate-loss
+minimization (TRADES) model.
 
 Paper: Theoretically Principled Trade-off between Robustness and Accuracy
 Url: https://arxiv.org/abs/1901.08573

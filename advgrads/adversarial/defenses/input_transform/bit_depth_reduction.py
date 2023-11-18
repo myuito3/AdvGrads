@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implementation of the Bit-Depth Reduction defense.
+"""The implementation of the Bit-Depth Reduction defense.
 
 Paper: Feature Squeezing: Detecting Adversarial Examples in Deep Neural Networks
 Url: https://arxiv.org/abs/1704.01155
