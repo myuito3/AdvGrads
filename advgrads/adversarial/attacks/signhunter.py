@@ -19,14 +19,14 @@ Url: https://openreview.net/forum?id=SygW0TEFwH
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, Type
+from typing import Dict, List, Type
 
 import numpy as np
 import torch
 import torch.nn as nn
 from torch import Tensor
 
-from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig
+from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig, NormType
 from advgrads.adversarial.attacks.utils.losses import MarginLoss
 from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
 from advgrads.models.base_model import Model
@@ -45,9 +45,11 @@ class SignHunterAttack(Attack):
 
     Args:
         config: The SignHunter attack configuration.
+        norm_allow_list: List of supported perturbation norms.
     """
 
     config: SignHunterAttackConfig
+    norm_allow_list: List[NormType] = ["l_inf"]
 
     def __init__(self, config: SignHunterAttackConfig) -> None:
         super().__init__(config)

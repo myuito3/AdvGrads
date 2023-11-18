@@ -20,13 +20,13 @@ Url: https://arxiv.org/abs/1607.02533
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, Type
+from typing import Dict, List, Type
 
 import torch
 import torch.nn.functional as F
 from torch import Tensor
 
-from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig
+from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig, NormType
 from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
 from advgrads.models.base_model import Model
 
@@ -44,9 +44,11 @@ class IFgsmAttack(Attack):
 
     Args:
         config: The I-FGSM attack configuration.
+        norm_allow_list: List of supported perturbation norms.
     """
 
     config: IFgsmAttackConfig
+    norm_allow_list: List[NormType] = ["l_inf"]
 
     def run_attack(
         self, x: Tensor, y: Tensor, model: Model

@@ -19,12 +19,12 @@ Url: https://arxiv.org/abs/1511.04599
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, Type
+from typing import Dict, List, Type
 
 import torch
 from torch import Tensor
 
-from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig
+from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig, NormType
 from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
 from advgrads.models.base_model import Model
 
@@ -44,9 +44,11 @@ class DeepFoolAttack(Attack):
 
     Args:
         config: The DeepFool attack configuration.
+        norm_allow_list: List of supported perturbation norms.
     """
 
     config: DeepFoolAttackConfig
+    norm_allow_list: List[NormType] = ["l_2"]
 
     def __init__(self, config: DeepFoolAttackConfig) -> None:
         super().__init__(config)

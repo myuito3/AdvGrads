@@ -23,13 +23,13 @@ processing.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, Tuple, Type
+from typing import Dict, List, Tuple, Type
 
 import torch
 import torch.nn as nn
 from torch import Tensor
 
-from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig
+from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig, NormType
 from advgrads.adversarial.attacks.utils.losses import MarginLoss
 from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
 from advgrads.models.base_model import Model
@@ -52,9 +52,11 @@ class SimBAAttack(Attack):
 
     Args:
         config: The SimBA attack configuration.
+        norm_allow_list: List of supported perturbation norms.
     """
 
     config: SimBAAttackConfig
+    norm_allow_list: List[NormType] = ["l_2"]
 
     def __init__(self, config: SimBAAttackConfig) -> None:
         super().__init__(config)

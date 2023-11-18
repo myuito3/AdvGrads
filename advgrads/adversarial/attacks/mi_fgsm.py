@@ -23,13 +23,13 @@ https://github.com/dongyp13/Non-Targeted-Adversarial-Attacks
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, Type
+from typing import Dict, List, Type
 
 import torch
 import torch.nn.functional as F
 from torch import Tensor
 
-from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig
+from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig, NormType
 from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
 from advgrads.models.base_model import Model
 
@@ -49,9 +49,11 @@ class MiFgsmAttack(Attack):
 
     Args:
         config: The MI-FGSM attack configuration.
+        norm_allow_list: List of supported perturbation norms.
     """
 
     config: MiFgsmAttackConfig
+    norm_allow_list: List[NormType] = ["l_inf"]
 
     def run_attack(
         self, x: Tensor, y: Tensor, model: Model

@@ -22,14 +22,14 @@ Original code is referenced from https://github.com/max-andr/square-attack
 
 import math
 from dataclasses import dataclass, field
-from typing import Dict, Type
+from typing import Dict, List, Type
 
 import numpy as np
 import torch
 import torch.nn as nn
 from torch import Tensor
 
-from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig
+from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig, NormType
 from advgrads.adversarial.attacks.utils.losses import MarginLoss
 from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
 from advgrads.models.base_model import Model
@@ -50,9 +50,11 @@ class SquareAttack(Attack):
 
     Args:
         config: The Square attack configuration.
+        norm_allow_list: List of supported perturbation norms.
     """
 
     config: SquareAttackConfig
+    norm_allow_list: List[NormType] = ["l_inf"]
 
     def __init__(self, config: SquareAttackConfig) -> None:
         super().__init__(config)
