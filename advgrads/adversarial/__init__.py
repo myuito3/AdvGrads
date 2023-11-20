@@ -21,6 +21,7 @@ from advgrads.adversarial.attacks.i_fgsm import IFgsmAttackConfig
 from advgrads.adversarial.attacks.mi_fgsm import MiFgsmAttackConfig
 from advgrads.adversarial.attacks.ni_fgsm import NiFgsmAttackConfig
 from advgrads.adversarial.attacks.pgd import PGDAttackConfig
+from advgrads.adversarial.attacks.pi_fgsm import PiFgsmAttackConfig
 from advgrads.adversarial.attacks.si_ni_fgsm import SiNiFgsmAttackConfig
 from advgrads.adversarial.attacks.signhunter import SignHunterAttackConfig
 from advgrads.adversarial.attacks.simba import SimBAAttackConfig
@@ -54,6 +55,7 @@ attack_class_dict = {
     "mi-fgsm": MiFgsmAttackConfig,
     "ni-fgsm": NiFgsmAttackConfig,
     "pgd": PGDAttackConfig,
+    "pi-fgsm": PiFgsmAttackConfig,
     "si-ni-fgsm": SiNiFgsmAttackConfig,
     "signhunter": SignHunterAttackConfig,
     "simba": SimBAAttackConfig,
