@@ -16,6 +16,7 @@
 
 from advgrads.adversarial.attacks.base_attack import AttackConfig
 from advgrads.adversarial.attacks.deepfool import DeepFoolAttackConfig
+from advgrads.adversarial.attacks.di_mi_fgsm import DiMiFgsmAttackConfig
 from advgrads.adversarial.attacks.fgsm import FgsmAttackConfig
 from advgrads.adversarial.attacks.i_fgsm import IFgsmAttackConfig
 from advgrads.adversarial.attacks.mi_fgsm import MiFgsmAttackConfig
@@ -50,6 +51,7 @@ def get_defense_config_class(name: str) -> DefenseConfig:
 
 attack_class_dict = {
     "deepfool": DeepFoolAttackConfig,
+    "di-mi-fgsm": DiMiFgsmAttackConfig,
     "fgsm": FgsmAttackConfig,
     "i-fgsm": IFgsmAttackConfig,
     "mi-fgsm": MiFgsmAttackConfig,
