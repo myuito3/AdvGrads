@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Base model class."""
+"""Base class for models."""
 
 import os
 import requests
@@ -30,7 +30,7 @@ from advgrads.configs.base_config import InstantiateConfig
 
 @dataclass
 class ModelConfig(InstantiateConfig):
-    """Configuration for the base model instantiation."""
+    """The base configuration class for models."""
 
     _target: Type = field(default_factory=lambda: Model)
     """Target class to instantiate."""
@@ -41,10 +41,10 @@ class ModelConfig(InstantiateConfig):
 
 
 class Model(nn.Module):
-    """Base model class for PyTorch.
+    """The base class for models.
 
     Args:
-        config: The base model configuration.
+        config: Configuration for models.
     """
 
     config: ModelConfig
@@ -54,7 +54,7 @@ class Model(nn.Module):
         self.config = config
 
     @abstractmethod
-    def forward(self, x_input: Tensor) -> Tensor:
+    def forward(self, x_input: Tensor, **kwargs) -> Tensor:
         """Query the model and obtain logits output.
 
         Args:

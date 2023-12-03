@@ -30,7 +30,7 @@ from advgrads.models.base_model import Model, ModelConfig
 
 @dataclass
 class PtPgCifar10ModelConfig(ModelConfig):
-    """Configuration for the pytorch-playground model instantiation."""
+    """The configuration class for the pytorch-playground model."""
 
     _target: Type = field(default_factory=lambda: PtPgCifar10Model)
     """Target class to instantiate."""
@@ -51,7 +51,7 @@ class PtPgCifar10Model(Model):
 
     config: PtPgCifar10ModelConfig
 
-    def __init__(self, config: PtPgCifar10ModelConfig, **kwargs) -> None:
+    def __init__(self, config: PtPgCifar10ModelConfig) -> None:
         super().__init__(config)
         n_channel = 128
 

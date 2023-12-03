@@ -12,21 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implementation of the SignHunter attack.
+"""The implementation of the SignHunter attack.
 
 Paper: Sign Bits Are All You Need for Black-Box Attacks
 Url: https://openreview.net/forum?id=SygW0TEFwH
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, Type
+from typing import Dict, List, Type
 
 import numpy as np
 import torch
 import torch.nn as nn
 from torch import Tensor
 
-from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig
+from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig, NormType
 from advgrads.adversarial.attacks.utils.losses import MarginLoss
 from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
 from advgrads.models.base_model import Model
@@ -34,7 +34,7 @@ from advgrads.models.base_model import Model
 
 @dataclass
 class SignHunterAttackConfig(AttackConfig):
-    """The configuration class for SignHunter attack."""
+    """The configuration class for the SignHunter attack."""
 
     _target: Type = field(default_factory=lambda: SignHunterAttack)
     """Target class to instantiate."""
@@ -45,12 +45,14 @@ class SignHunterAttack(Attack):
 
     Args:
         config: The SignHunter attack configuration.
+        norm_allow_list: List of supported perturbation norms.
     """
 
     config: SignHunterAttackConfig
+    norm_allow_list: List[NormType] = ["l_inf"]
 
-    def __init__(self, config: SignHunterAttackConfig, **kwargs) -> None:
-        super().__init__(config, **kwargs)
+    def __init__(self, config: SignHunterAttackConfig) -> None:
+        super().__init__(config)
 
         self.loss = (
             nn.CrossEntropyLoss(reduction="none")
@@ -91,7 +93,7 @@ class SignHunterAttack(Attack):
             margin_min_curr = margin_min[idx_to_fool]
             loss_min_curr = loss_min[idx_to_fool]
 
-            # Generate candidates for new adversarial examples
+            # Generate candidates for new adversarial examples.
             chunk_len = np.ceil(n_dim / (2**h)).astype(int)
             istart = i * chunk_len
             iend = min(n_dim, (i + 1) * chunk_len)
@@ -107,7 +109,7 @@ class SignHunterAttack(Attack):
             loss = self.loss(logits, y_curr)
             margin = self.margin(logits, y_curr)
 
-            # Update current loss values and adversarial examples
+            # Update current loss values and adversarial examples.
             idx_improved = loss < loss_min_curr
             loss_min[idx_to_fool] = idx_improved * loss + ~idx_improved * loss_min_curr
             margin_min[idx_to_fool] = (

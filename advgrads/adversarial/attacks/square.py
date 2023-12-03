@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implementation of the Square attack.
+"""The implementation of the Square attack.
 
 Paper: Square Attack: a query-efficient black-box adversarial attack via random search
 Url: https://arxiv.org/abs/1912.00049
@@ -22,14 +22,14 @@ Original code is referenced from https://github.com/max-andr/square-attack
 
 import math
 from dataclasses import dataclass, field
-from typing import Dict, Type
+from typing import Dict, List, Type
 
 import numpy as np
 import torch
 import torch.nn as nn
 from torch import Tensor
 
-from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig
+from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig, NormType
 from advgrads.adversarial.attacks.utils.losses import MarginLoss
 from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
 from advgrads.models.base_model import Model
@@ -37,7 +37,7 @@ from advgrads.models.base_model import Model
 
 @dataclass
 class SquareAttackConfig(AttackConfig):
-    """The configuration class for Square attack."""
+    """The configuration class for the Square attack."""
 
     _target: Type = field(default_factory=lambda: SquareAttack)
     """Target class to instantiate."""
@@ -46,16 +46,18 @@ class SquareAttackConfig(AttackConfig):
 
 
 class SquareAttack(Attack):
-    """The class of the Square attack .
+    """The class of the Square attack.
 
     Args:
         config: The Square attack configuration.
+        norm_allow_list: List of supported perturbation norms.
     """
 
     config: SquareAttackConfig
+    norm_allow_list: List[NormType] = ["l_inf"]
 
-    def __init__(self, config: SquareAttackConfig, **kwargs) -> None:
-        super().__init__(config, **kwargs)
+    def __init__(self, config: SquareAttackConfig) -> None:
+        super().__init__(config)
 
         self.loss = (
             nn.CrossEntropyLoss(reduction="none")
@@ -142,22 +144,21 @@ class SquareAttack(Attack):
 
         return deltas
 
+    @torch.no_grad()
     def run_attack(
         self, x: Tensor, y: Tensor, model: Model
     ) -> Dict[ResultHeadNames, Tensor]:
         c, h, w = x.shape[1:]
         n_queries = torch.zeros((x.shape[0]), dtype=torch.int16).to(x.device)
 
-        # [1, w, c], i.e. vertical stripes work best for untargeted attacks
         init_delta = torch.from_numpy(
             np.random.choice([-self.eps, self.eps], size=[x.shape[0], c, 1, w])
         ).to(x)
         x_best = torch.clamp(x + init_delta, self.min_val, self.max_val)
-        with torch.no_grad():
-            logits = model(x_best)
-            loss_min = self.loss(logits, y)
-            margin_min = self.margin(logits, y)
-        n_queries += 1  # ones because we have already used 1 query
+        logits = model(x_best)
+        loss_min = self.loss(logits, y)
+        margin_min = self.margin(logits, y)
+        n_queries += 1
 
         for i_iter in range(self.max_iters - 1):
             idx_to_fool = torch.atleast_1d((margin_min > 0.0).nonzero().squeeze())
@@ -171,15 +172,14 @@ class SquareAttack(Attack):
             margin_min_curr = margin_min[idx_to_fool]
             loss_min_curr = loss_min[idx_to_fool]
 
-            # Generate candidates for new adversarial examples
+            # Generate candidates for new adversarial examples.
             deltas = self.get_new_deltas(x_curr, x_best_curr, i_iter)
             x_new = torch.clamp(x_curr + deltas, self.min_val, self.max_val)
-            with torch.no_grad():
-                logits = model(x_new)
-                loss = self.loss(logits, y_curr)
-                margin = self.margin(logits, y_curr)
+            logits = model(x_new)
+            loss = self.loss(logits, y_curr)
+            margin = self.margin(logits, y_curr)
 
-            # Update current loss values and adversarial examples
+            # Update current loss values and adversarial examples.
             idx_improved = loss < loss_min_curr
             loss_min[idx_to_fool] = idx_improved * loss + ~idx_improved * loss_min_curr
             margin_min[idx_to_fool] = (

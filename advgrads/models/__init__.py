@@ -23,12 +23,13 @@ from advgrads.models.pytorch_playground.mnist_model import PtPgMnistModelConfig
 
 
 def get_model_config_class(name: str) -> Model:
+    assert name in all_model_names, f"Model named '{name}' not found."
     return model_config_class_dict[name]
 
 
 model_config_class_dict = {
-    "ptpg_mnist": PtPgMnistModelConfig,
-    "ptpg_cifar10": PtPgCifar10ModelConfig,
-    "trades_mnist": TradesMnistModelConfig,
+    "ptpg-mnist": PtPgMnistModelConfig,
+    "ptpg-cifar10": PtPgCifar10ModelConfig,
+    "trades-mnist": TradesMnistModelConfig,
 }
 all_model_names = list(model_config_class_dict.keys())

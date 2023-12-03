@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Config used for running an experiment."""
+"""Collection of config classes used for running an experiment."""
 
 from dataclasses import dataclass
 from pathlib import Path
@@ -29,8 +29,6 @@ class ExperimentConfig:
     """Name of the dataset."""
     model: Optional[str] = None
     """Name of the model."""
-    checkpoint_path: Optional[str] = None
-    """Path to the checkpoint to be loaded into the model."""
     attacks: Optional[List[dict]] = None
     """List of attack parameters."""
     seed: Optional[int] = None
@@ -45,7 +43,7 @@ class ExperimentConfig:
 
 @dataclass
 class ResultConfig(ExperimentConfig):
-    """Result config."""
+    """The config class for output results of the experiment."""
 
     output_dir: Path = Path("outputs")
     """Output directory to save the result of each attack."""

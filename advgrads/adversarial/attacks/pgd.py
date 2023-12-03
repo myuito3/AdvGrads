@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""The implementation of the Fast Gradient Sign Method (FGSM) attack.
+"""The implementation of the Projected Gradient Descent (PGD) attack.
 
-Paper: Explaining and Harnessing Adversarial Examples
-Url: https://arxiv.org/abs/1412.6572
+Paper: Towards Deep Learning Models Resistant to Adversarial Attacks
+Url: https://arxiv.org/abs/1706.06083
 """
 
 from dataclasses import dataclass, field
@@ -31,36 +31,45 @@ from advgrads.models.base_model import Model
 
 
 @dataclass
-class FgsmAttackConfig(AttackConfig):
-    """The configuration class for the FGSM attack."""
+class PGDAttackConfig(AttackConfig):
+    """The configuration class for the PGD attack."""
 
-    _target: Type = field(default_factory=lambda: FgsmAttack)
+    _target: Type = field(default_factory=lambda: PGDAttack)
     """Target class to instantiate."""
 
 
-class FgsmAttack(Attack):
-    """The class of the FGSM attack.
+class PGDAttack(Attack):
+    """The class of the PGD attack.
 
     Args:
-        config: The FGSM attack configuration.
+        config: The PGD attack configuration.
         norm_allow_list: List of supported perturbation norms.
     """
 
-    config: FgsmAttackConfig
+    config: PGDAttackConfig
     norm_allow_list: List[NormType] = ["l_inf"]
 
     def run_attack(
         self, x: Tensor, y: Tensor, model: Model
     ) -> Dict[ResultHeadNames, Tensor]:
-        x_adv = x.clone().detach().requires_grad_(True)
-        model.zero_grad()
+        alpha = self.eps / self.max_iters
 
-        logits = model(x_adv)
-        loss = F.cross_entropy(logits, y)
-        if self.targeted:
-            loss *= -1
-        gradients = torch.autograd.grad(loss, [x_adv])[0].detach()
+        # Generate initial perturbations from a continuous uniform distribution.
+        init_deltas = torch.empty_like(x).uniform_(-self.eps, self.eps)
+        x_adv = torch.clamp(x + init_deltas, min=self.min_val, max=self.max_val)
 
-        x_adv = x_adv + self.eps * torch.sign(gradients)
-        x_adv = torch.clamp(x_adv, min=self.min_val, max=self.max_val)
+        for _ in range(self.max_iters):
+            x_adv = x_adv.clone().detach().requires_grad_(True)
+            model.zero_grad()
+
+            logits = model(x_adv)
+            loss = F.cross_entropy(logits, y)
+            if self.targeted:
+                loss *= -1
+            gradients = torch.autograd.grad(loss, [x_adv])[0].detach()
+
+            x_adv = x_adv + alpha * torch.sign(gradients)
+            deltas = torch.clamp(x_adv - x, min=-self.eps, max=self.eps)
+            x_adv = torch.clamp(x + deltas, min=self.min_val, max=self.max_val)
+
         return {ResultHeadNames.X_ADV: x_adv}

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Vision Dataset."""
+"""Datasets provided by torchvision."""
 
 from typing import List, Optional, Tuple
 
@@ -27,7 +27,11 @@ DATA_PATH = "./data/vision_datasets"
 
 
 class MnistDataset(Dataset):
-    """The MNIST Dataset."""
+    """The MNIST Dataset.
+
+    Args:
+        indices_to_use: List of image indices to be used.
+    """
 
     def __init__(self, indices_to_use: Optional[List[int]] = None) -> None:
         super().__init__()
@@ -51,9 +55,13 @@ class MnistDataset(Dataset):
 
 
 class Cifar10Dataset(Dataset):
-    """The CIFAR-10 Dataset."""
+    """The CIFAR-10 Dataset.
 
-    def __init__(self, indices_to_use: list = None) -> None:
+    Args:
+        indices_to_use: List of image indices to be used.
+    """
+
+    def __init__(self, indices_to_use: Optional[List[int]] = None) -> None:
         super().__init__()
         data = CIFAR10(root=DATA_PATH, train=False, download=True)
         arrays = (data.data, np.array(data.targets, dtype=np.longlong))

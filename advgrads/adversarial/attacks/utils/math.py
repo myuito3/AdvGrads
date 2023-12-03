@@ -12,23 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Init datasets."""
+"""Math helper functions."""
 
-from torch.utils.data import Dataset
-
-from advgrads.data.datasets.vision_dataset import (
-    MnistDataset,
-    Cifar10Dataset,
-)
+import torch
+from torch import Tensor
 
 
-def get_dataset_class(name: str) -> Dataset:
-    assert name in all_dataset_names, f"Dataset named '{name}' not found."
-    return dataset_class_dict[name]
+def normalize(vectors: Tensor, eps: float = 1e-10) -> Tensor:
+    """Returns normalized vectors.
 
-
-dataset_class_dict = {
-    "mnist": MnistDataset,
-    "cifar10": Cifar10Dataset,
-}
-all_dataset_names = list(dataset_class_dict.keys())
+    Args:
+        vectors: Vectors to normalize.
+        eps: Epsilon value to avoid division by zero.
+    """
+    dims = list(range(vectors.ndim))
+    return vectors / (torch.norm(vectors, p=2, dim=dims[1:], keepdim=True) + eps)

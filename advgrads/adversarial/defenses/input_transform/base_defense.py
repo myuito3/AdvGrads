@@ -25,14 +25,14 @@ from advgrads.configs.base_config import InstantiateConfig
 
 @dataclass
 class DefenseConfig(InstantiateConfig):
-    """Configuration for defense methods."""
+    """The base configuration class for defense methods."""
 
     _target: Type = field(default_factory=lambda: Defense)
     """Target class to instantiate."""
 
 
 class Defense:
-    """Base class for defense methods.
+    """The base class for defense methods.
 
     Args:
         config: Configuration for defense methods.

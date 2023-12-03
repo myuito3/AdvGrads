@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""The TRADES (TRadeoff-inspired Adversarial DEfense via Surrogate-loss minimization)
-model.
+"""The implementation of the TRadeoff-inspired Adversarial DEfense via Surrogate-loss
+minimization (TRADES) model.
 
 Paper: Theoretically Principled Trade-off between Robustness and Accuracy
 Url: https://arxiv.org/abs/1901.08573
@@ -35,7 +35,7 @@ from advgrads.models.base_model import Model, ModelConfig
 
 @dataclass
 class TradesMnistModelConfig(ModelConfig):
-    """Configuration for the TRADES model instantiation."""
+    """The configuration class for the TRADES model."""
 
     _target: Type = field(default_factory=lambda: TradesMnistModel)
     """Target class to instantiate."""
@@ -57,7 +57,7 @@ class TradesMnistModel(Model):
 
     config: TradesMnistModelConfig
 
-    def __init__(self, config: TradesMnistModelConfig, **kwargs) -> None:
+    def __init__(self, config: TradesMnistModelConfig) -> None:
         super().__init__(config)
         activ = nn.ReLU(True)
 

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Collection of losses."""
+"""Collection of loss functions."""
 
 from abc import abstractmethod
 
@@ -23,13 +23,11 @@ from torch import Tensor
 
 
 class Loss(nn.Module):
-    """Base class for losses.
+    """Base class for a loss function.
 
     Args:
-        targeted: Objective of attacker.
+        targeted: Whether or not to perform targeted attacks.
     """
-
-    targeted: bool = False
 
     def __init__(self, targeted: bool = False) -> None:
         super().__init__()
@@ -40,13 +38,17 @@ class Loss(nn.Module):
         """Calculates loss values.
 
         Args:
-            logits: Logits value outputed by victim model.
+            logits: Logits values outputed by victim model.
             y: Ground truth or target labels.
         """
 
 
 class CrossEntropyLoss(Loss):
-    """Implementation of the cross-entropy loss."""
+    """Implementation of the cross-entropy loss.
+
+    Args:
+        targeted: Whether or not to perform targeted attacks.
+    """
 
     def forward(self, logits: Tensor, y: Tensor) -> Tensor:
         loss = F.cross_entropy(logits, y, reduction="none")
@@ -58,6 +60,9 @@ class CrossEntropyLoss(Loss):
 class MarginLoss(Loss):
     """Implementation of the margin loss (difference between the correct and 2nd best
     class).
+
+    Args:
+        targeted: Whether or not to perform targeted attacks.
     """
 
     def forward(self, logits: Tensor, y: Tensor) -> Tensor:

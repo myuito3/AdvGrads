@@ -1,6 +1,6 @@
 seed: 42
 data: mnist
-model: ptpg_mnist
+model: ptpg-mnist
 
 attacks:
   -
@@ -10,13 +10,13 @@ attacks:
     max_iters: 0
     targeted: false
   -
-    method: i_fgsm
+    method: i-fgsm
     norm: l_inf
     eps: 0.3
     max_iters: 10
     targeted: false
   -
-    method: mi_fgsm
+    method: mi-fgsm
     norm: l_inf
     eps: 0.3
     max_iters: 10

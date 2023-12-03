@@ -12,26 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implementation of the DeepFool attack.
+"""The implementation of the DeepFool attack.
 
 Paper: DeepFool: a simple and accurate method to fool deep neural networks
 Url: https://arxiv.org/abs/1511.04599
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, Type
+from typing import Dict, List, Type
 
 import torch
 from torch import Tensor
 
-from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig
+from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig, NormType
 from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
 from advgrads.models.base_model import Model
 
 
 @dataclass
 class DeepFoolAttackConfig(AttackConfig):
-    """The configuration class for DeepFool attack."""
+    """The configuration class for the DeepFool attack."""
 
     _target: Type = field(default_factory=lambda: DeepFoolAttack)
     """Target class to instantiate."""
@@ -44,12 +44,14 @@ class DeepFoolAttack(Attack):
 
     Args:
         config: The DeepFool attack configuration.
+        norm_allow_list: List of supported perturbation norms.
     """
 
     config: DeepFoolAttackConfig
+    norm_allow_list: List[NormType] = ["l_2"]
 
-    def __init__(self, config: DeepFoolAttackConfig, **kwargs) -> None:
-        super().__init__(config, **kwargs)
+    def __init__(self, config: DeepFoolAttackConfig) -> None:
+        super().__init__(config)
 
         if self.targeted:
             raise ValueError("DeepFool does not support targeted attack.")
