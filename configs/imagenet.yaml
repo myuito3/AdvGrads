@@ -1,0 +1,32 @@
+seed: 42
+data: imagenet
+model: vgg16-imagenet
+
+attacks:
+  -
+    method: fgsm
+    norm: l_inf
+    eps: 0.05
+    targeted: false
+  -
+    method: i-fgsm
+    norm: l_inf
+    eps: 0.05
+    max_iters: 10
+    targeted: false
+  -
+    method: mi-fgsm
+    norm: l_inf
+    eps: 0.05
+    max_iters: 10
+    targeted: false
+  -
+    method: square
+    norm: l_inf
+    eps: 0.05
+    max_iters: 10000
+    targeted: false
+    p_init: 0.05
+
+num_images: 100
+batch_size: 16

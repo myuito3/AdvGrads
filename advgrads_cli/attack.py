@@ -49,18 +49,28 @@ def main(load_config) -> None:
     config = ExperimentConfig()
     config.__dict__.update(load_from_yaml(Path(load_config)))
 
-    image_indices = (
-        index_samplers.get_arange(config.num_images)
-        if config.num_images is not None
-        else None
-    )
-    dataset = get_dataset_class(config.data)(indices_to_use=image_indices)
-    dataloader = get_dataloader(dataset, batch_size=config.batch_size)
-
     model_config = get_model_config_class(config.model)()
     model = model_config.setup()
     model.load()
     model.to(device)
+
+    if "imagenet" in config.model:
+        image_indices = (
+            index_samplers.get_random(config.num_images, population=50000)
+            if config.num_images is not None
+            else None
+        )
+        dataset = get_dataset_class(config.data)(
+            transform=model.get_transform(), indices_to_use=image_indices
+        )
+    else:
+        image_indices = (
+            index_samplers.get_arange(config.num_images)
+            if config.num_images is not None
+            else None
+        )
+        dataset = get_dataset_class(config.data)(indices_to_use=image_indices)
+    dataloader = get_dataloader(dataset, batch_size=config.batch_size)
 
     defense = None
     if config.thirdparty_defense is not None:
