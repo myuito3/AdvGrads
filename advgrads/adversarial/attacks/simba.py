@@ -66,7 +66,10 @@ class SimBAAttack(Attack):
                 "SimBA is a minimum-norm attack, not a norm-constrained attack."
             )
         if self.max_iters > 0:
-            raise ValueError()
+            raise ValueError(
+                "The maximum number of queries for SimBA is controlled by the "
+                "freq_dims parameter in the config."
+            )
 
         self.loss = (
             nn.CrossEntropyLoss(reduction="none")
