@@ -49,18 +49,28 @@ def main(load_config) -> None:
     config = ExperimentConfig()
     config.__dict__.update(load_from_yaml(Path(load_config)))
 
-    image_indices = (
-        index_samplers.get_arange(config.num_images)
-        if config.num_images is not None
-        else None
-    )
-    dataset = get_dataset_class(config.data)(indices_to_use=image_indices)
-    dataloader = get_dataloader(dataset, batch_size=config.batch_size)
-
     model_config = get_model_config_class(config.model)()
     model = model_config.setup()
     model.load()
     model.to(device)
+
+    if "imagenet" in config.model:
+        image_indices = (
+            index_samplers.get_random(config.num_images, population=50000)
+            if config.num_images is not None
+            else None
+        )
+        dataset = get_dataset_class(config.data)(
+            transform=model.get_transform(), indices_to_use=image_indices
+        )
+    else:
+        image_indices = (
+            index_samplers.get_arange(config.num_images)
+            if config.num_images is not None
+            else None
+        )
+        dataset = get_dataset_class(config.data)(indices_to_use=image_indices)
+    dataloader = get_dataloader(dataset, batch_size=config.batch_size)
 
     defense = None
     if config.thirdparty_defense is not None:
@@ -82,15 +92,15 @@ def main(load_config) -> None:
                 # Currently we use gt+1 as the target label.
                 labels = (labels + 1) % dataset.num_classes
 
-            images, labels = images.to(device), labels.to(device)
-            attack_outputs = attack(images, labels, model, thirdparty_defense=defense)
+            batch = {"images": images.to(device), "labels": labels.to(device)}
+            attack_outputs = attack(batch, model, thirdparty_defense=defense)
+            success_rate_meter.update(
+                attack_outputs[ResultHeadNames.NUM_SUCCEED], len(images)
+            )
 
-            if ResultHeadNames.NUM_SUCCEED in attack_outputs.keys():
-                success_rate_meter.update(
-                    attack_outputs[ResultHeadNames.NUM_SUCCEED], len(images)
-                )
-            if ResultHeadNames.QUERIES_SUCCEED in attack_outputs.keys():
-                query_meter.update(attack_outputs[ResultHeadNames.QUERIES_SUCCEED])
+            metrics_dict = attack.get_metrics_dict(attack_outputs, batch)
+            if ResultHeadNames.QUERIES_SUCCEED in metrics_dict.keys():
+                query_meter.update(metrics_dict[ResultHeadNames.QUERIES_SUCCEED])
 
             console_log(str(success_rate_meter) + str(query_meter))
 

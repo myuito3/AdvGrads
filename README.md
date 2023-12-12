@@ -2,6 +2,15 @@
 
 # AdvGrads
 
+<p>
+  <!-- release badge -->
+  <a href="https://github.com/myuito3/AdvGrads/releases">
+    <img alt="Latest Release" src="https://img.shields.io/github/release/myuito3/AdvGrads.svg?&color=blue" /></a>
+  <!-- license badge -->
+  <a href="https://github.com/myuito3/AdvGrads/blob/master/LICENSE">
+    <img alt="License" src="https://img.shields.io/badge/License-Apache_2.0-brightgreen.svg" /></a>
+</p>
+
 </div>
 
 ## 🌐 About
@@ -18,11 +27,13 @@ Currently supported attack methods are as follows:
 | Method              | Type                | References          |
 | :------------------ | :------------------ | :------------------ |
 | DeepFool            | White-box           | 📃[DeepFool: a simple and accurate method to fool deep neural networks](https://arxiv.org/abs/1511.04599) |
+| DI-MI-FGSM          | White-box           | 📃[Improving Transferability of Adversarial Examples with Input Diversity](https://arxiv.org/abs/1803.06978) |
 | FGSM                | White-box           | 📃[Explaining and Harnessing Adversarial Examples](https://arxiv.org/abs/1412.6572) |
 | I-FGSM (BIM)        | White-box           | 📃[Adversarial examples in the physical world](https://arxiv.org/abs/1607.02533) |
 | MI-FGSM (MIM)       | White-box           | 📃[Boosting Adversarial Attacks with Momentum](https://arxiv.org/abs/1710.06081) |
 | NI-FGSM             | White-box           | 📃[Nesterov Accelerated Gradient and Scale Invariance for Adversarial Attacks](https://arxiv.org/abs/1908.06281) |
 | PGD                 | White-box           | 📃[Towards Deep Learning Models Resistant to Adversarial Attacks](https://arxiv.org/abs/1706.06083) |
+| PI-FGSM             | White-box           | 📃[Patch-wise Attack for Fooling Deep Neural Network](https://arxiv.org/abs/2007.06765) |
 | SI-NI-FGSM          | White-box           | 📃[Nesterov Accelerated Gradient and Scale Invariance for Adversarial Attacks](https://arxiv.org/abs/1908.06281) |
 | SignHunter          | Black-box           | 📃[Sign Bits Are All You Need for Black-Box Attacks](https://openreview.net/forum?id=SygW0TEFwH) |
 | SimBA               | Black-box           | 📃[Simple Black-box Adversarial Attacks](https://arxiv.org/abs/1905.07121) |
@@ -57,6 +68,8 @@ py -3.9 -m venv [ENV_NAME]
 After creating and activating your virtual environment, you can install necessary libraries via the requirements.txt.
 
 ```bash
+git clone https://github.com/myuito3/AdvGrads.git
+cd AdvGrads/
 pip install -r requirements.txt
 ```
 
@@ -64,7 +77,6 @@ pip install -r requirements.txt
 Install AdvGrads in editable mode from source code:
 
 ```bash
-git clone https://github.com/myuito3/AdvGrads.git
 python -m pip install -e .
 ```
 

@@ -74,7 +74,7 @@ class Attack:
         if self.norm not in self.norm_allow_list:
             raise ValueError(f"Method does not support {self.norm} perturbation norm.")
 
-    def __call__(self, *args: Any, **kwargs: Any) -> Dict[ResultHeadNames, Any]:
+    def __call__(self, *args: Any, **kwargs: Any) -> Dict[ResultHeadNames, Tensor]:
         return self.get_outputs(*args, **kwargs)
 
     @property
@@ -114,49 +114,6 @@ class Attack:
         """
         raise NotImplementedError
 
-    def get_outputs(
-        self,
-        x: Tensor,
-        y: Tensor,
-        model: Model,
-        thirdparty_defense: Optional[Defense] = None,
-        **kwargs,
-    ) -> Dict[ResultHeadNames, Any]:
-        """Returns raw attack results processed.
-
-        Args:
-            x: Images to be searched for adversarial examples.
-            y: Ground truth labels of images.
-            model: A model to be attacked.
-            thirdparty_defense: Thirdparty defense method instance.
-        """
-        attack_outputs = self.run_attack(x, y, model, **kwargs)
-        self.sanity_check(x, attack_outputs[ResultHeadNames.X_ADV])
-
-        # If a defensive method is defined, the process is performed here. This
-        # corresponds to Section 5.2 (GRAY BOX: IMAGE TRANSFORMATIONS AT TEST TIME) in
-        # the paper of Guo et al [https://arxiv.org/pdf/1711.00117.pdf].
-        if thirdparty_defense is not None:
-            attack_outputs[ResultHeadNames.X_ADV] = thirdparty_defense(
-                attack_outputs[ResultHeadNames.X_ADV]
-            )
-
-        with torch.no_grad():
-            logits = model(attack_outputs[ResultHeadNames.X_ADV])
-        preds = torch.argmax(logits, dim=-1)
-        cond = (preds == y) if self.targeted else (preds != y)
-        attack_outputs[ResultHeadNames.NUM_SUCCEED] = cond.sum()
-
-        if ResultHeadNames.QUERIES in attack_outputs.keys():
-            attack_outputs[ResultHeadNames.QUERIES_SUCCEED] = attack_outputs[
-                ResultHeadNames.QUERIES
-            ][cond]
-
-        for key, value in attack_outputs.items():
-            if isinstance(value, Tensor):
-                attack_outputs[key] = value.cpu()
-        return attack_outputs
-
     def sanity_check(self, x: Tensor, x_adv: Tensor) -> None:
         """Ensure that the amount of perturbation is properly controlled. This method
         is specifically used to check the amount of perturbation of norm-constrained
@@ -180,3 +137,51 @@ class Attack:
                 raise NotImplementedError
 
             assert real <= self.eps, msg
+
+    def get_outputs(
+        self,
+        batch: Dict[str, Tensor],
+        model: Model,
+        thirdparty_defense: Optional[Defense] = None,
+        **kwargs,
+    ) -> Dict[ResultHeadNames, Tensor]:
+        """Returns raw attack results processed.
+
+        Args:
+            batch: A batch including original images and labels.
+            model: A model to be attacked.
+            thirdparty_defense: Thirdparty defense method instance.
+        """
+        x, y = batch["images"], batch["labels"]
+        attack_outputs = self.run_attack(x, y, model, **kwargs)
+        x_adv = attack_outputs[ResultHeadNames.X_ADV]
+        self.sanity_check(x, x_adv)
+
+        # If a defensive method is defined, the process is performed here. This
+        # corresponds to Section 5.2 (GRAY BOX: IMAGE TRANSFORMATIONS AT TEST TIME) in
+        # the paper of Guo et al [https://arxiv.org/pdf/1711.00117.pdf].
+        with torch.no_grad():
+            if thirdparty_defense is not None:
+                logits = model(thirdparty_defense(x_adv))
+            else:
+                logits = model(x_adv)
+        preds = torch.argmax(logits, dim=-1)
+        succeed = (preds == y) if self.targeted else (preds != y)
+
+        attack_outputs[ResultHeadNames.PREDS] = preds
+        attack_outputs[ResultHeadNames.SUCCEED] = succeed
+        attack_outputs[ResultHeadNames.NUM_SUCCEED] = succeed.sum()
+
+        return attack_outputs
+
+    def get_metrics_dict(
+        self, outputs: Dict[ResultHeadNames, Tensor], batch: Dict[str, Tensor]
+    ) -> Dict[str, Tensor]:
+        """Compute and returns metrics.
+
+        Args:
+            outputs: The output to compute metrics dict to.
+            batch: Ground truth batch corresponding to outputs.
+        """
+
+        return {}

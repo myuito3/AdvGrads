@@ -18,6 +18,12 @@ from advgrads.adversarial.defenses.adv_train.trades.trades_mnist import (
     TradesMnistModelConfig,
 )
 from advgrads.models.base_model import Model
+from advgrads.models.imagenet.inception import InceptionV3ImagenetModelConfig
+from advgrads.models.imagenet.resnet import Resnet50ImagenetModelConfig
+from advgrads.models.imagenet.vgg import (
+    Vgg16ImagenetModelConfig,
+    Vgg16bnImagenetModelConfig,
+)
 from advgrads.models.pytorch_playground.cifar10_model import PtPgCifar10ModelConfig
 from advgrads.models.pytorch_playground.mnist_model import PtPgMnistModelConfig
 
@@ -31,5 +37,9 @@ model_config_class_dict = {
     "ptpg-mnist": PtPgMnistModelConfig,
     "ptpg-cifar10": PtPgCifar10ModelConfig,
     "trades-mnist": TradesMnistModelConfig,
+    "inceptionv3-imagenet": InceptionV3ImagenetModelConfig,
+    "resnet50-imagenet": Resnet50ImagenetModelConfig,
+    "vgg16-imagenet": Vgg16ImagenetModelConfig,
+    "vgg16bn-imagenet": Vgg16bnImagenetModelConfig,
 }
 all_model_names = list(model_config_class_dict.keys())

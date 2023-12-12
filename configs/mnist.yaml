@@ -7,7 +7,6 @@ attacks:
     method: fgsm
     norm: l_inf
     eps: 0.3
-    max_iters: 0
     targeted: false
   -
     method: i-fgsm

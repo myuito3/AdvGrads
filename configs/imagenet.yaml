@@ -1,6 +1,6 @@
 seed: 42
-data: cifar10
-model: ptpg-cifar10
+data: imagenet
+model: vgg16-imagenet
 
 attacks:
   -
@@ -28,5 +28,5 @@ attacks:
     targeted: false
     p_init: 0.05
 
-num_images: 1000
-batch_size: 128
+num_images: 100
+batch_size: 16

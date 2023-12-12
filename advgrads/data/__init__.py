@@ -16,6 +16,7 @@
 
 from torch.utils.data import Dataset
 
+from advgrads.data.datasets.imagenet_dataset import ImagenetDataset
 from advgrads.data.datasets.vision_dataset import (
     MnistDataset,
     Cifar10Dataset,
@@ -28,7 +29,8 @@ def get_dataset_class(name: str) -> Dataset:
 
 
 dataset_class_dict = {
-    "mnist": MnistDataset,
     "cifar10": Cifar10Dataset,
+    "imagenet": ImagenetDataset,
+    "mnist": MnistDataset,
 }
 all_dataset_names = list(dataset_class_dict.keys())

@@ -77,7 +77,7 @@ class PiFgsmAttack(Attack):
 
         c = x.shape[1]
         stack_kern, padding_size = project_kern(kern_size=3, channels=c)
-        stack_kern.to(x.device)
+        stack_kern = stack_kern.to(x.device)
 
         amplification = 0.0
         for _ in range(self.max_iters):

@@ -128,3 +128,17 @@ class DeepFoolAttack(Attack):
             )
 
         return {ResultHeadNames.X_ADV: x_adv}
+
+    def get_metrics_dict(
+        self, outputs: Dict[ResultHeadNames, Tensor], batch: Dict[str, Tensor]
+    ) -> Dict[str, Tensor]:
+        metrics_dict = {}
+        succeed = outputs[ResultHeadNames.SUCCEED]
+
+        # perturbation norm
+        l2_norm_succeed = torch.norm(
+            outputs[ResultHeadNames.X_ADV] - batch["images"], p=2, dim=[1, 2, 3]
+        )[succeed]
+        metrics_dict["l2_norm"] = l2_norm_succeed
+
+        return metrics_dict
