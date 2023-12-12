@@ -135,3 +135,15 @@ class SignHunterAttack(Attack):
                     h = 0
 
         return {ResultHeadNames.X_ADV: x_adv, ResultHeadNames.QUERIES: n_queries}
+
+    def get_metrics_dict(
+        self, outputs: Dict[ResultHeadNames, Tensor], batch: Dict[str, Tensor]
+    ) -> Dict[str, Tensor]:
+        metrics_dict = {}
+        succeed = outputs[ResultHeadNames.SUCCEED]
+
+        # query
+        queries_succeed = outputs[ResultHeadNames.QUERIES][succeed]
+        metrics_dict[ResultHeadNames.QUERIES_SUCCEED] = queries_succeed
+
+        return metrics_dict

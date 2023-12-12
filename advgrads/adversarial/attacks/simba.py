@@ -187,3 +187,21 @@ class SimBAAttack(Attack):
 
         x_best, _, _, _ = self.get_data(torch.arange(x.shape[0]))
         return {ResultHeadNames.X_ADV: x_best, ResultHeadNames.QUERIES: n_queries}
+
+    def get_metrics_dict(
+        self, outputs: Dict[ResultHeadNames, Tensor], batch: Dict[str, Tensor]
+    ) -> Dict[str, Tensor]:
+        metrics_dict = {}
+        succeed = outputs[ResultHeadNames.SUCCEED]
+
+        # query
+        queries_succeed = outputs[ResultHeadNames.QUERIES][succeed]
+        metrics_dict[ResultHeadNames.QUERIES_SUCCEED] = queries_succeed
+
+        # perturbation norm
+        l2_norm_succeed = torch.norm(
+            outputs[ResultHeadNames.X_ADV] - batch["images"], p=2, dim=[1, 2, 3]
+        )[succeed]
+        metrics_dict["l2_norm"] = l2_norm_succeed
+
+        return metrics_dict

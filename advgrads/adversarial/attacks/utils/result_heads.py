@@ -22,9 +22,12 @@ class ResultHeadNames(Enum):
 
     X_ADV = "x_adv"
     SHAPE = "shape"
+    PREDS = "preds"
+    SUCCEED = "succeed"
+    NUM_SUCCEED = "num_succeed"
     SUCCESS_RATE = "success_rate"
+
     QUERIES = "queries"
     QUERIES_SUCCEED = "queries_succeed"
     MEAN_QUERY = "mean_query"
     MEDIAN_QUERY = "median_query"
-    NUM_SUCCEED = "num_succeed"

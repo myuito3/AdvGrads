@@ -92,15 +92,15 @@ def main(load_config) -> None:
                 # Currently we use gt+1 as the target label.
                 labels = (labels + 1) % dataset.num_classes
 
-            images, labels = images.to(device), labels.to(device)
-            attack_outputs = attack(images, labels, model, thirdparty_defense=defense)
+            batch = {"images": images.to(device), "labels": labels.to(device)}
+            attack_outputs = attack(batch, model, thirdparty_defense=defense)
+            success_rate_meter.update(
+                attack_outputs[ResultHeadNames.NUM_SUCCEED], len(images)
+            )
 
-            if ResultHeadNames.NUM_SUCCEED in attack_outputs.keys():
-                success_rate_meter.update(
-                    attack_outputs[ResultHeadNames.NUM_SUCCEED], len(images)
-                )
-            if ResultHeadNames.QUERIES_SUCCEED in attack_outputs.keys():
-                query_meter.update(attack_outputs[ResultHeadNames.QUERIES_SUCCEED])
+            metrics_dict = attack.get_metrics_dict(attack_outputs, batch)
+            if ResultHeadNames.QUERIES_SUCCEED in metrics_dict.keys():
+                query_meter.update(metrics_dict[ResultHeadNames.QUERIES_SUCCEED])
 
             console_log(str(success_rate_meter) + str(query_meter))
 

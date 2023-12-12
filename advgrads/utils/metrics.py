@@ -14,7 +14,7 @@
 
 """Eval metrics."""
 
-import numpy as np
+import torch
 
 
 class SuccessRateMeter:
@@ -55,8 +55,12 @@ class QueryMeter:
         self.reset()
 
     def __str__(self) -> str:
-        return "Mean Query: {:.2f} Median Query: {:.2f} ".format(
-            self.get_mean(), self.get_median()
+        return (
+            "Mean Query: {:.2f} Median Query: {:.2f} ".format(
+                self.get_mean(), self.get_median()
+            )
+            if self.queries
+            else ""
         )
 
     def reset(self) -> None:
@@ -73,8 +77,8 @@ class QueryMeter:
 
     def get_mean(self) -> float:
         """Calculate the mean from the stacked queries."""
-        return float(np.mean(self.queries))
+        return float(torch.mean(torch.tensor(self.queries).float()))
 
     def get_median(self) -> float:
         """Calculate the median from the stacked queries."""
-        return float(np.median(self.queries))
+        return float(torch.median(torch.tensor(self.queries).float()))
