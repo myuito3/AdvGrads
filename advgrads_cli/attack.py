@@ -122,6 +122,7 @@ def main(load_config) -> None:
             result_config.__dict__.update(defense_config.__dict__)
         result_config.__dict__.update(attack_config.__dict__)
         result_config.__dict__.update(outputs)
+        result_config.experiment_name = Path(load_config).stem
         result_config.save_config()
 
 
