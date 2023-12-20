@@ -36,6 +36,8 @@ class AttackConfig(InstantiateConfig):
 
     _target: Type = field(default_factory=lambda: Attack)
     """Target class to instantiate."""
+    method: Optional[str] = None
+    """Method name."""
     targeted: bool = False
     """Whether or not to perform targeted attacks."""
     min_val: float = 0.0
@@ -72,7 +74,9 @@ class Attack:
                 f"max_iters must be greater than or equal to 0, got {self.max_iters}."
             )
         if self.norm not in self.norm_allow_list:
-            raise ValueError(f"Method does not support {self.norm} perturbation norm.")
+            raise ValueError(
+                f"{self.method} does not support {self.norm} perturbation norm."
+            )
 
     def __call__(self, *args: Any, **kwargs: Any) -> Dict[ResultHeadNames, Tensor]:
         return self.get_outputs(*args, **kwargs)
@@ -100,6 +104,10 @@ class Attack:
     @property
     def max_iters(self) -> int:
         return self.config.max_iters
+
+    @property
+    def method(self) -> str:
+        return self.config.method
 
     @abstractmethod
     def run_attack(

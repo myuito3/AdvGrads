@@ -18,13 +18,18 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
 
+from advgrads.configs.base_config import InstantiateConfig
 from advgrads.utils.io import write_to_yaml
 
 
 @dataclass
-class ExperimentConfig:
+class ExperimentConfig(InstantiateConfig):
     """Full config contents for running an experiment."""
 
+    output_dir: Path = Path("outputs")
+    """Output directory to save the result of each attack."""
+    experiment_name: Optional[str] = None
+    """Experiment name."""
     data: Optional[str] = None
     """Name of the dataset."""
     model: Optional[str] = None
@@ -39,18 +44,6 @@ class ExperimentConfig:
     """Number of images per batch."""
     thirdparty_defense: Optional[str] = None
     """Name of thirdparty defense method."""
-
-
-@dataclass
-class ResultConfig(ExperimentConfig):
-    """The config class for output results of the experiment."""
-
-    output_dir: Path = Path("outputs")
-    """Output directory to save the result of each attack."""
-    method: Optional[str] = None
-    """Method name."""
-    experiment_name: Optional[str] = None
-    """Experiment name."""
 
     def set_experiment_name(self) -> None:
         """Set the experiment name."""
