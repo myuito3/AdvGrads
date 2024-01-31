@@ -18,13 +18,20 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
 
+from advgrads.configs.base_config import InstantiateConfig
 from advgrads.utils.io import write_to_yaml
 
 
 @dataclass
-class ExperimentConfig:
+class ExperimentConfig(InstantiateConfig):
     """Full config contents for running an experiment."""
 
+    output_dir: Path = Path("outputs")
+    """Output directory to save the result of each attack."""
+    experiment_name: Optional[str] = None
+    """Experiment name."""
+    method: Optional[str] = None
+    """Alias for get_base_dir() method."""
     data: Optional[str] = None
     """Name of the dataset."""
     model: Optional[str] = None
@@ -40,19 +47,15 @@ class ExperimentConfig:
     thirdparty_defense: Optional[str] = None
     """Name of thirdparty defense method."""
 
-
-@dataclass
-class ResultConfig(ExperimentConfig):
-    """The config class for output results of the experiment."""
-
-    output_dir: Path = Path("outputs")
-    """Output directory to save the result of each attack."""
-    method: Optional[str] = None
-    """Name of attack method."""
+    def set_experiment_name(self) -> None:
+        """Set the experiment name."""
+        if self.experiment_name is None:
+            self.experiment_name = "unnamed"
 
     def get_base_dir(self) -> Path:
         """Retrieve the base directory to set relative paths."""
-        return Path(f"{self.output_dir}/{self.method}")
+        self.set_experiment_name()
+        return Path(f"{self.output_dir}/{self.experiment_name}/{self.method}")
 
     def save_config(self) -> None:
         """Save config to base directory."""
