@@ -30,6 +30,8 @@ class ExperimentConfig(InstantiateConfig):
     """Output directory to save the result of each attack."""
     experiment_name: Optional[str] = None
     """Experiment name."""
+    method: Optional[str] = None
+    """Alias for get_base_dir() method."""
     data: Optional[str] = None
     """Name of the dataset."""
     model: Optional[str] = None

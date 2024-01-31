@@ -2,14 +2,8 @@
 
 # AdvGrads
 
-<p>
-  <!-- release badge -->
-  <a href="https://github.com/myuito3/AdvGrads/releases">
-    <img alt="Latest Release" src="https://img.shields.io/github/release/myuito3/AdvGrads.svg?&color=blue" /></a>
-  <!-- license badge -->
-  <a href="https://github.com/myuito3/AdvGrads/blob/master/LICENSE">
-    <img alt="License" src="https://img.shields.io/badge/License-Apache_2.0-brightgreen.svg" /></a>
-</p>
+[![Latest Release](https://img.shields.io/github/release/myuito3/AdvGrads.svg?&color=blue)](https://github.com/myuito3/AdvGrads/releases)
+[![License](https://img.shields.io/badge/License-Apache_2.0-green.svg)](https://github.com/myuito3/AdvGrads/blob/master/LICENSE)
 
 </div>
 
@@ -84,7 +78,7 @@ python -m pip install -e .
 You can execute the attack immediately using the config files provided in this repository.
 
 ```bash
-python advgrads_cli/attack.py --load_config configs/mnist.yaml
+python advgrads_cli/attack.py --load_config configs/mnist_untargeted.yaml
 ```
 
 ### ⚙ Description format of config files

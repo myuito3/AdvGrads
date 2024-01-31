@@ -127,7 +127,9 @@ class Attacker:
 
         console_print(
             Panel(
-                str(success_rate_meter) + str(query_meter),
+                f"Method: {attack.method} "
+                + str(success_rate_meter)
+                + str(query_meter),
                 title="[bold][green]:tada: Attack Finished :tada:[/bold]",
                 expand=False,
             )
