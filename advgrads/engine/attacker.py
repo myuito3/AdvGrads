@@ -22,16 +22,13 @@ from typing import Any, Dict, Type, Union
 import numpy as np
 import torch
 
-from advgrads.adversarial import get_attack_config_class, get_defense_config_class
-from advgrads.adversarial.attacks.base_attack import AttackConfig, Attack
+from advgrads.adversarial import get_attack, get_defense
+from advgrads.adversarial.attacks.base_attack import Attack
 from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
-from advgrads.adversarial.defenses.input_transform.base_defense import DefenseConfig
 from advgrads.configs.experiment_config import ExperimentConfig
-from advgrads.data import get_dataset_class
-from advgrads.data.utils import index_samplers
+from advgrads.data import get_dataset
 from advgrads.data.utils.data_utils import get_dataloader
-from advgrads.models import get_model_config_class
-from advgrads.models.base_model import ModelConfig, Model
+from advgrads.models import get_model
 from advgrads.utils.metrics import SuccessRateMeter, QueryMeter
 from advgrads.utils.rich_utils import console_log, console_print, Panel
 
@@ -63,35 +60,20 @@ class Attacker:
     def __init__(self, config: AttackerConfig) -> None:
         self.config = config
 
-        model_config: ModelConfig = get_model_config_class(config.model)()
-        self.model: Model = model_config.setup()
+        self.model = get_model(config.model)
         self.model.load()
         self.model.to(self.device)
 
         self.defense = None
         if config.thirdparty_defense is not None:
-            defense_config: DefenseConfig = get_defense_config_class(
-                config.thirdparty_defense
-            )()
-            self.defense = defense_config.setup()
+            self.defense = get_defense(config.thirdparty_defense)
 
-        if config.data == "imagenet":
-            image_indices = (
-                index_samplers.get_random(config.num_images, population=50000)
-                if config.num_images is not None
-                else None
-            )
-            dataset = get_dataset_class(config.data)(
-                transform=self.model.get_transform(), indices_to_use=image_indices
-            )
-        else:
-            image_indices = (
-                index_samplers.get_random(config.num_images)
-                if config.num_images is not None
-                else None
-            )
-            dataset = get_dataset_class(config.data)(indices_to_use=image_indices)
-
+        dataset, image_indices = get_dataset(
+            config.data,
+            num_images=config.num_images,
+            transform=self.model.get_transform(),
+        )
+        self.image_indices = image_indices
         self.dataset = dataset
         self.dataloader = get_dataloader(dataset, batch_size=config.batch_size)
 
@@ -148,15 +130,11 @@ class Attacker:
         for attack_dict in self.config.attacks:
             _set_random_seed(self.config.seed)
 
-            attack_config: AttackConfig = get_attack_config_class(
-                attack_dict["method"]
-            )()
-            attack_config.__dict__.update(attack_dict)
-            attack = attack_config.setup()
+            attack = get_attack(attack_dict["method"], attack_dict=attack_dict)
 
             attack_outputs = self.get_attack_outputs(attack)
 
             result_config = deepcopy(self.config)
-            result_config.__dict__.update(attack_config.__dict__)
+            result_config.__dict__.update(attack.config.__dict__)
             result_config.__dict__.update(attack_outputs)
             result_config.save_config()

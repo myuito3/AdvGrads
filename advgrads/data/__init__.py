@@ -14,6 +14,8 @@
 
 """Init datasets."""
 
+from typing import List, Optional, Type
+
 from torch.utils.data import Dataset
 
 from advgrads.data.datasets.imagenet_dataset import ImagenetDataset
@@ -21,11 +23,35 @@ from advgrads.data.datasets.vision_dataset import (
     MnistDataset,
     Cifar10Dataset,
 )
+from advgrads.data.utils import index_samplers
 
 
-def get_dataset_class(name: str) -> Dataset:
+def get_dataset_class(name: str) -> Type[Dataset]:
     assert name in all_dataset_names, f"Dataset named '{name}' not found."
     return dataset_class_dict[name]
+
+
+def get_dataset(
+    name: str,
+    image_indices: Optional[List[int]] = None,
+    num_images: Optional[int] = None,
+    **kwargs,
+) -> Dataset:
+    if image_indices is None:
+        if name == "imagenet":
+            image_indices = (
+                index_samplers.get_random(num_images, population=50000)
+                if num_images is not None
+                else None
+            )
+        else:
+            image_indices = (
+                index_samplers.get_random(num_images)
+                if num_images is not None
+                else None
+            )
+    dataset = get_dataset_class(name)(indices_to_use=image_indices, **kwargs)
+    return dataset, image_indices
 
 
 dataset_class_dict = {

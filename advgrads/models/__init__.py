@@ -14,10 +14,12 @@
 
 """Init model configs."""
 
+from typing import Type
+
 from advgrads.adversarial.defenses.adv_train.trades.trades_mnist import (
     TradesMnistModelConfig,
 )
-from advgrads.models.base_model import Model
+from advgrads.models.base_model import ModelConfig, Model
 from advgrads.models.imagenet.inception import InceptionV3ImagenetModelConfig
 from advgrads.models.imagenet.resnet import Resnet50ImagenetModelConfig
 from advgrads.models.imagenet.vgg import (
@@ -28,9 +30,15 @@ from advgrads.models.pytorch_playground.cifar10_model import PtPgCifar10ModelCon
 from advgrads.models.pytorch_playground.mnist_model import PtPgMnistModelConfig
 
 
-def get_model_config_class(name: str) -> Model:
+def get_model_config_class(name: str) -> Type[Model]:
     assert name in all_model_names, f"Model named '{name}' not found."
     return model_config_class_dict[name]
+
+
+def get_model(name: str, **kwargs) -> Model:
+    model_config: ModelConfig = get_model_config_class(name)(**kwargs)
+    model = model_config.setup()
+    return model
 
 
 model_config_class_dict = {

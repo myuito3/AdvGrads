@@ -35,6 +35,7 @@ class ImagenetDataset(ImageNet):
         self,
         transform: transforms.Compose,
         indices_to_use: Optional[List[int]] = None,
+        **kwargs
     ) -> None:
         super().__init__(root=DATA_PATH, split="val", transform=transform)
 
@@ -46,3 +47,7 @@ class ImagenetDataset(ImageNet):
     @property
     def num_classes(self) -> int:
         return 1000
+
+    def get_targets(self) -> list:
+        """."""
+        return [s[1] for s in self.samples]

@@ -14,7 +14,9 @@
 
 """Init attack/defense method configs."""
 
-from advgrads.adversarial.attacks.base_attack import AttackConfig
+from typing import Optional, Type
+
+from advgrads.adversarial.attacks.base_attack import AttackConfig, Attack
 from advgrads.adversarial.attacks.deepfool import DeepFoolAttackConfig
 from advgrads.adversarial.attacks.di_mi_fgsm import DiMiFgsmAttackConfig
 from advgrads.adversarial.attacks.fgsm import FgsmAttackConfig
@@ -27,7 +29,10 @@ from advgrads.adversarial.attacks.si_ni_fgsm import SiNiFgsmAttackConfig
 from advgrads.adversarial.attacks.signhunter import SignHunterAttackConfig
 from advgrads.adversarial.attacks.simba import SimBAAttackConfig
 from advgrads.adversarial.attacks.square import SquareAttackConfig
-from advgrads.adversarial.defenses.input_transform.base_defense import DefenseConfig
+from advgrads.adversarial.defenses.input_transform.base_defense import (
+    DefenseConfig,
+    Defense,
+)
 from advgrads.adversarial.defenses.input_transform.bit_depth_reduction import (
     BitDepthReductionDefenseConfig,
 )
@@ -39,14 +44,28 @@ from advgrads.adversarial.defenses.input_transform.randomization import (
 )
 
 
-def get_attack_config_class(name: str) -> AttackConfig:
+def get_attack_config_class(name: str) -> Type[AttackConfig]:
     assert name in all_attack_names, f"Attack method named '{name}' not found."
     return attack_class_dict[name]
 
 
-def get_defense_config_class(name: str) -> DefenseConfig:
+def get_attack(name: str, attack_dict: Optional[dict] = None, **kwargs) -> Attack:
+    attack_config: AttackConfig = get_attack_config_class(name)(**kwargs)
+    if attack_dict is not None:
+        attack_config.__dict__.update(attack_dict)
+    attack = attack_config.setup()
+    return attack
+
+
+def get_defense_config_class(name: str) -> Type[DefenseConfig]:
     assert name in all_defense_names, f"Defense method named '{name}' not found."
     return defense_class_dict[name]
+
+
+def get_defense(name: str, **kwargs) -> Defense:
+    defense_config: DefenseConfig = get_defense_config_class(name)(**kwargs)
+    defense = defense_config.setup()
+    return defense
 
 
 attack_class_dict = {
