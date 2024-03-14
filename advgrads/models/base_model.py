@@ -24,6 +24,7 @@ from typing import Optional, Type
 import torch
 import torch.nn as nn
 from torch import Tensor
+from torchvision import transforms
 
 from advgrads.configs.base_config import InstantiateConfig
 
@@ -79,3 +80,7 @@ class Model(nn.Module):
         os.makedirs(os.path.dirname(self.config.checkpoint_path), exist_ok=True)
         with open(self.config.checkpoint_path, mode="wb") as file:
             file.write(data)
+
+    def get_transform(self) -> transforms.Compose:
+        """Returns the transform to be used for image pre-processing."""
+        return

@@ -33,7 +33,7 @@ class MnistDataset(Dataset):
         indices_to_use: List of image indices to be used.
     """
 
-    def __init__(self, indices_to_use: Optional[List[int]] = None) -> None:
+    def __init__(self, indices_to_use: Optional[List[int]] = None, **kwargs) -> None:
         super().__init__()
         data = MNIST(root=DATA_PATH, train=False, download=True)
         arrays = (data.data.numpy(), data.targets.numpy())
@@ -61,7 +61,7 @@ class Cifar10Dataset(Dataset):
         indices_to_use: List of image indices to be used.
     """
 
-    def __init__(self, indices_to_use: Optional[List[int]] = None) -> None:
+    def __init__(self, indices_to_use: Optional[List[int]] = None, **kwargs) -> None:
         super().__init__()
         data = CIFAR10(root=DATA_PATH, train=False, download=True)
         arrays = (data.data, np.array(data.targets, dtype=np.longlong))

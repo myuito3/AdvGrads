@@ -22,16 +22,13 @@ from typing import Any, Dict, Type, Union
 import numpy as np
 import torch
 
-from advgrads.adversarial import get_attack_config_class, get_defense_config_class
-from advgrads.adversarial.attacks.base_attack import AttackConfig, Attack
+from advgrads.adversarial import get_attack, get_defense
+from advgrads.adversarial.attacks.base_attack import Attack
 from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
-from advgrads.adversarial.defenses.input_transform.base_defense import DefenseConfig
 from advgrads.configs.experiment_config import ExperimentConfig
-from advgrads.data import get_dataset_class
-from advgrads.data.utils import index_samplers
+from advgrads.data import get_dataset
 from advgrads.data.utils.data_utils import get_dataloader
-from advgrads.models import get_model_config_class
-from advgrads.models.base_model import ModelConfig, Model
+from advgrads.models import get_model
 from advgrads.utils.metrics import SuccessRateMeter, QueryMeter
 from advgrads.utils.rich_utils import console_log, console_print, Panel
 
@@ -51,6 +48,8 @@ class AttackerConfig(ExperimentConfig):
     """Target class to instantiate."""
     device: Union[str, torch.device] = "cpu"
     """The device to perform the attack on."""
+    save_outputs: bool = False
+    """Whether to save additional attack results e.g. adversarial examples."""
 
 
 class Attacker:
@@ -63,37 +62,20 @@ class Attacker:
     def __init__(self, config: AttackerConfig) -> None:
         self.config = config
 
-        model_config: ModelConfig = get_model_config_class(config.model)()
-        self.model: Model = model_config.setup()
+        self.model = get_model(config.model)
         self.model.load()
         self.model.to(self.device)
 
         self.defense = None
         if config.thirdparty_defense is not None:
-            defense_config: DefenseConfig = get_defense_config_class(
-                config.thirdparty_defense
-            )()
-            self.defense = defense_config.setup()
+            self.defense = get_defense(config.thirdparty_defense)
 
-        if config.data == "imagenet":
-            image_indices = (
-                index_samplers.get_random(config.num_images, population=50000)
-                if config.num_images is not None
-                else None
-            )
-            dataset = get_dataset_class(config.data)(
-                transform=self.model.get_transform(), indices_to_use=image_indices
-            )
-        else:
-            image_indices = (
-                index_samplers.get_random(config.num_images)
-                if config.num_images is not None
-                else None
-            )
-            dataset = get_dataset_class(config.data)(indices_to_use=image_indices)
-
-        self.dataset = dataset
-        self.dataloader = get_dataloader(dataset, batch_size=config.batch_size)
+        self.dataset, self.image_indices = get_dataset(
+            config.data,
+            num_images=config.num_images,
+            transform=self.model.get_transform(),
+        )
+        self.dataloader = get_dataloader(self.dataset, batch_size=config.batch_size)
 
     @property
     def device(self) -> str:
@@ -107,6 +89,7 @@ class Attacker:
         """
         success_rate_meter = SuccessRateMeter()
         query_meter = QueryMeter()
+        x_adv = []
 
         for images, labels in self.dataloader:
             if attack.targeted:
@@ -115,6 +98,8 @@ class Attacker:
 
             batch = {"images": images.to(self.device), "labels": labels.to(self.device)}
             attack_outputs = attack(batch, self.model, thirdparty_defense=self.defense)
+            x_adv.append(attack_outputs[ResultHeadNames.X_ADV].detach().cpu().numpy())
+
             success_rate_meter.update(
                 attack_outputs[ResultHeadNames.NUM_SUCCEED], len(images)
             )
@@ -138,8 +123,9 @@ class Attacker:
         outputs = {ResultHeadNames.SUCCESS_RATE: success_rate_meter.get_success_rate()}
         outputs[ResultHeadNames.MEAN_QUERY] = query_meter.get_mean()
         outputs[ResultHeadNames.MEDIAN_QUERY] = query_meter.get_median()
+        x_adv = np.concatenate(x_adv, axis=0)
 
-        return outputs
+        return outputs, x_adv
 
     def run(self) -> None:
         """Execute all the methods in the attack list and output the results to a file
@@ -148,15 +134,13 @@ class Attacker:
         for attack_dict in self.config.attacks:
             _set_random_seed(self.config.seed)
 
-            attack_config: AttackConfig = get_attack_config_class(
-                attack_dict["method"]
-            )()
-            attack_config.__dict__.update(attack_dict)
-            attack = attack_config.setup()
-
-            attack_outputs = self.get_attack_outputs(attack)
+            attack = get_attack(attack_dict["method"], attack_dict=attack_dict)
+            attack_outputs, x_adv = self.get_attack_outputs(attack)
 
             result_config = deepcopy(self.config)
-            result_config.__dict__.update(attack_config.__dict__)
-            result_config.__dict__.update(attack_outputs)
+            result_config.update(attack.config, attack_outputs)
             result_config.save_config()
+
+            if self.config.save_outputs:
+                save_path = result_config.get_base_dir() / "results.npz"
+                np.savez(save_path, x_adv=x_adv, image_indices=self.image_indices)

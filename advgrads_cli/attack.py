@@ -29,8 +29,12 @@ def main(load_config) -> None:
     """Main function."""
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    config = AttackerConfig(experiment_name=Path(load_config).stem, device=device)
-    config.__dict__.update(load_from_yaml(Path(load_config)))
+    config = AttackerConfig(
+        experiment_name=Path(load_config).stem,
+        device=device,
+        save_outputs=True,
+    )
+    config.update(load_from_yaml(Path(load_config)))
     attacker: Attacker = config.setup()
     attacker.run()
 
