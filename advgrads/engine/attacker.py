@@ -135,12 +135,10 @@ class Attacker:
             _set_random_seed(self.config.seed)
 
             attack = get_attack(attack_dict["method"], attack_dict=attack_dict)
-
             attack_outputs, x_adv = self.get_attack_outputs(attack)
 
             result_config = deepcopy(self.config)
-            result_config.__dict__.update(attack.config.__dict__)
-            result_config.__dict__.update(attack_outputs)
+            result_config.update(attack.config, attack_outputs)
             result_config.save_config()
 
             if self.config.save_outputs:

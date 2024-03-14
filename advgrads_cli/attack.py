@@ -34,7 +34,7 @@ def main(load_config) -> None:
         device=device,
         save_outputs=True,
     )
-    config.__dict__.update(load_from_yaml(Path(load_config)))
+    config.update(load_from_yaml(Path(load_config)))
     attacker: Attacker = config.setup()
     attacker.run()
 

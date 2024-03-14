@@ -18,8 +18,22 @@ from dataclasses import dataclass
 from typing import Any, Type
 
 
+class BaseConfig:
+    """Base config class."""
+
+    def update(self, *args) -> None:
+        """Update oneself configs from objects with a dictionary or a dictionary
+        itself.
+        """
+        for _from in args:
+            if isinstance(_from, dict):
+                self.__dict__.update(_from)
+            if hasattr(_from, "__dict__"):
+                self.__dict__.update(_from.__dict__)
+
+
 @dataclass
-class InstantiateConfig:
+class InstantiateConfig(BaseConfig):
     """Config class for instantiating an the class specified in the _target
     attribute.
     """
