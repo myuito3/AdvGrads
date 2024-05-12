@@ -2,15 +2,12 @@ version: "3.8"
 
 services:
   dev:
-    shm_size: "3gb"
+    container_name: advgrads
+
     build:
       context: ..
-      dockerfile: .devcontainer/Dockerfile
-    tty: true
-    volumes:
-      - ../:/workspace/
-    working_dir: /workspace/
-    command: /bin/bash
+      dockerfile: Dockerfile
+
     deploy:
       resources:
         reservations:
@@ -18,3 +15,17 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [ gpu ]
+
+    volumes:
+      - ..:/workspace:cached
+    working_dir: /workspace
+
+    privileged: true
+    shm_size: "12gb"
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
+    tty: true
+    stdin_open: true
+    command: /bin/bash
