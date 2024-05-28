@@ -14,6 +14,8 @@ This repository is still under development. For more information, please contact
 
 ## 💻 Installation
 
+You can skip the installation steps below using the Dockerfile (recommended).
+
 ### Create environment
 AdvGrads requires `Python >= 3.9`. An example of creating an environment using Python venv:
 ```bash
