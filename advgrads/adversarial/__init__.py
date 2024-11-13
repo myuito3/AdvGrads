@@ -18,14 +18,14 @@ from typing import Optional, Type
 
 from advgrads.adversarial.attacks.base_attack import AttackConfig, Attack
 from advgrads.adversarial.attacks.deepfool import DeepFoolAttackConfig
-from advgrads.adversarial.attacks.di_mi_fgsm import DiMiFgsmAttackConfig
-from advgrads.adversarial.attacks.fgsm import FgsmAttackConfig
-from advgrads.adversarial.attacks.i_fgsm import IFgsmAttackConfig
-from advgrads.adversarial.attacks.mi_fgsm import MiFgsmAttackConfig
-from advgrads.adversarial.attacks.ni_fgsm import NiFgsmAttackConfig
-from advgrads.adversarial.attacks.pgd import PGDAttackConfig
-from advgrads.adversarial.attacks.pi_fgsm import PiFgsmAttackConfig
-from advgrads.adversarial.attacks.si_ni_fgsm import SiNiFgsmAttackConfig
+from advgrads.adversarial.attacks.fgsm.di_mi_fgsm import DiMiFgsmAttackConfig
+from advgrads.adversarial.attacks.fgsm.fgsm import FgsmAttackConfig
+from advgrads.adversarial.attacks.fgsm.i_fgsm import IFgsmAttackConfig
+from advgrads.adversarial.attacks.fgsm.mi_fgsm import MiFgsmAttackConfig
+from advgrads.adversarial.attacks.fgsm.ni_fgsm import NiFgsmAttackConfig
+from advgrads.adversarial.attacks.fgsm.pgd import PGDAttackConfig
+from advgrads.adversarial.attacks.fgsm.pi_fgsm import PiFgsmAttackConfig
+from advgrads.adversarial.attacks.fgsm.si_ni_fgsm import SiNiFgsmAttackConfig
 from advgrads.adversarial.attacks.signhunter import SignHunterAttackConfig
 from advgrads.adversarial.attacks.simba import SimBAAttackConfig
 from advgrads.adversarial.attacks.square import SquareAttackConfig

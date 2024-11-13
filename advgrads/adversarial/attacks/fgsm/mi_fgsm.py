@@ -12,74 +12,68 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""The implementation of the Nesterov Iterative Fast Gradient Sign Method (NI-FGSM)
-attack.
+"""The implementation of the Momentum Iterative Fast Gradient Sign Method (MI-FGSM)
+attack. This method is also called Momentum Iterative Method (MIM).
 
-Paper: Nesterov Accelerated Gradient and Scale Invariance for Adversarial Attacks
-Url: https://arxiv.org/abs/1908.06281
+Paper: Boosting Adversarial Attacks with Momentum
+Url: https://arxiv.org/abs/1710.06081
 
-Original code is referenced from https://github.com/JHL-HUST/SI-NI-FGSM
+Original code is referenced from
+https://github.com/dongyp13/Non-Targeted-Adversarial-Attacks
 """
 
 from dataclasses import dataclass, field
 from typing import Dict, List, Type
 
 import torch
-import torch.nn.functional as F
 from torch import Tensor
 
-from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig, NormType
+from advgrads.adversarial.attacks.base_attack import AttackConfig, NORM_TYPE
+from advgrads.adversarial.attacks.fgsm.i_fgsm import IFgsmAttack
 from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
 from advgrads.models.base_model import Model
 
 
 @dataclass
-class NiFgsmAttackConfig(AttackConfig):
-    """The configuration class for the NI-FGSM attack."""
+class MiFgsmAttackConfig(AttackConfig):
+    """The configuration class for the MI-FGSM attack."""
 
-    _target: Type = field(default_factory=lambda: NiFgsmAttack)
+    _target: Type = field(default_factory=lambda: MiFgsmAttack)
     """Target class to instantiate."""
     momentum: float = 1.0
     """Momentum about the model."""
 
 
-class NiFgsmAttack(Attack):
-    """The class of the NI-FGSM attack.
+class MiFgsmAttack(IFgsmAttack):
+    """The class of the MI-FGSM attack.
 
     Args:
-        config: The NI-FGSM attack configuration.
+        config: The MI-FGSM attack configuration.
         norm_allow_list: List of supported perturbation norms.
     """
 
-    config: NiFgsmAttackConfig
-    norm_allow_list: List[NormType] = ["l_inf"]
+    config: MiFgsmAttackConfig
+    norm_allow_list: List[NORM_TYPE] = ["l_inf"]
 
     def run_attack(
         self, x: Tensor, y: Tensor, model: Model
     ) -> Dict[ResultHeadNames, Tensor]:
         x_adv = x
-        alpha = self.eps / self.max_iters
         accumulated_grads = torch.zeros_like(x)
 
         for _ in range(self.max_iters):
             x_adv = x_adv.clone().detach().requires_grad_(True)
             model.zero_grad()
 
-            x_nes = x_adv + self.config.momentum * alpha * accumulated_grads
-
-            logits = model(x_nes)
-            loss = F.cross_entropy(logits, y)
-            if self.targeted:
-                loss *= -1
-            gradients = torch.autograd.grad(loss, [x_adv])[0].detach()
+            gradients = self.get_gradients(self.get_loss(x_adv, y, model), x_adv)
 
             gradients = gradients / torch.mean(
                 torch.abs(gradients), dim=(1, 2, 3), keepdims=True
             )
-            gradients = gradients + self.config.momentum * accumulated_grads
+            gradients += self.config.momentum * accumulated_grads
             accumulated_grads = gradients.clone().detach()
 
-            x_adv = x_adv + alpha * torch.sign(gradients)
+            x_adv = x_adv + self.alpha * torch.sign(gradients)
             x_adv = torch.clamp(x_adv, min=self.min_val, max=self.max_val)
 
         return {ResultHeadNames.X_ADV: x_adv}

@@ -19,13 +19,13 @@ Url: https://arxiv.org/abs/1412.6572
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Type
+from typing import Callable, Dict, List, Type
 
 import torch
 import torch.nn.functional as F
 from torch import Tensor
 
-from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig, NormType
+from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig, NORM_TYPE
 from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
 from advgrads.models.base_model import Model
 
@@ -47,7 +47,19 @@ class FgsmAttack(Attack):
     """
 
     config: FgsmAttackConfig
-    norm_allow_list: List[NormType] = ["l_inf"]
+    norm_allow_list: List[NORM_TYPE] = ["l_inf"]
+
+    def get_loss(
+        self, x: Tensor, y: Tensor, model: Model, loss_fn: Callable = F.cross_entropy
+    ) -> Tensor:
+        logits = model(x)
+        loss = loss_fn(logits, y)
+        if self.targeted:
+            loss *= -1
+        return loss
+
+    def get_gradients(self, loss: Tensor, x: Tensor) -> Tensor:
+        return torch.autograd.grad(loss, [x])[0].detach()
 
     def run_attack(
         self, x: Tensor, y: Tensor, model: Model
@@ -55,12 +67,7 @@ class FgsmAttack(Attack):
         x_adv = x.clone().detach().requires_grad_(True)
         model.zero_grad()
 
-        logits = model(x_adv)
-        loss = F.cross_entropy(logits, y)
-        if self.targeted:
-            loss *= -1
-        gradients = torch.autograd.grad(loss, [x_adv])[0].detach()
-
+        gradients = self.get_gradients(self.get_loss(x_adv, y, model), x_adv)
         x_adv = x_adv + self.eps * torch.sign(gradients)
         x_adv = torch.clamp(x_adv, min=self.min_val, max=self.max_val)
         return {ResultHeadNames.X_ADV: x_adv}

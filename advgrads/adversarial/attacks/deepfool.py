@@ -24,7 +24,7 @@ from typing import Dict, List, Type
 import torch
 from torch import Tensor
 
-from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig, NormType
+from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig, NORM_TYPE
 from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
 from advgrads.models.base_model import Model
 
@@ -48,7 +48,7 @@ class DeepFoolAttack(Attack):
     """
 
     config: DeepFoolAttackConfig
-    norm_allow_list: List[NormType] = ["l_2"]
+    norm_allow_list: List[NORM_TYPE] = ["l_2"]
 
     def __init__(self, config: DeepFoolAttackConfig) -> None:
         super().__init__(config)

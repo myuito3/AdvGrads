@@ -28,7 +28,8 @@ import torch
 import torch.nn.functional as F
 from torch import Tensor
 
-from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig, NormType
+from advgrads.adversarial.attacks.base_attack import AttackConfig, NORM_TYPE
+from advgrads.adversarial.attacks.fgsm.i_fgsm import IFgsmAttack
 from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
 from advgrads.models.base_model import Model
 
@@ -45,7 +46,7 @@ class SiNiFgsmAttackConfig(AttackConfig):
     """Number of scale copies."""
 
 
-class SiNiFgsmAttack(Attack):
+class SiNiFgsmAttack(IFgsmAttack):
     """The class of the SI-NI-FGSM attack.
 
     Args:
@@ -54,7 +55,7 @@ class SiNiFgsmAttack(Attack):
     """
 
     config: SiNiFgsmAttackConfig
-    norm_allow_list: List[NormType] = ["l_inf"]
+    norm_allow_list: List[NORM_TYPE] = ["l_inf"]
 
     def scale_invariant(
         self,
@@ -79,11 +80,7 @@ class SiNiFgsmAttack(Attack):
 
         for i in range(self.config.num_scale_copies):
             x_scaled = 1 / (2**i) * x_to_be_scaled
-            logits = model(x_scaled)
-            loss = F.cross_entropy(logits, y)
-            if self.targeted:
-                loss *= -1
-            gradients += torch.autograd.grad(loss, [x])[0].detach()
+            gradients += self.get_gradients(self.get_loss(x_scaled, y, model), x)
 
         return gradients / self.config.num_scale_copies
 
@@ -91,23 +88,20 @@ class SiNiFgsmAttack(Attack):
         self, x: Tensor, y: Tensor, model: Model
     ) -> Dict[ResultHeadNames, Tensor]:
         x_adv = x
-        alpha = self.eps / self.max_iters
         accumulated_grads = torch.zeros_like(x)
 
         for _ in range(self.max_iters):
             x_adv = x_adv.clone().detach().requires_grad_(True)
             model.zero_grad()
 
-            x_nes = x_adv + self.config.momentum * alpha * accumulated_grads
+            x_nes = x_adv + self.config.momentum * self.alpha * accumulated_grads
             gradients = self.scale_invariant(x_adv, y, model, x_to_be_scaled=x_nes)
 
-            gradients = gradients / torch.mean(
-                torch.abs(gradients), dim=(1, 2, 3), keepdims=True
-            )
-            gradients = gradients + self.config.momentum * accumulated_grads
+            gradients /= torch.mean(torch.abs(gradients), dim=(1, 2, 3), keepdims=True)
+            gradients += self.config.momentum * accumulated_grads
             accumulated_grads = gradients.clone().detach()
 
-            x_adv = x_adv + alpha * torch.sign(gradients)
+            x_adv = x_adv + self.alpha * torch.sign(gradients)
             x_adv = torch.clamp(x_adv, min=self.min_val, max=self.max_val)
 
         return {ResultHeadNames.X_ADV: x_adv}

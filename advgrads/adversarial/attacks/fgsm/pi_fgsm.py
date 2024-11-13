@@ -29,7 +29,8 @@ import torch
 import torch.nn.functional as F
 from torch import Tensor
 
-from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig, NormType
+from advgrads.adversarial.attacks.base_attack import AttackConfig, NORM_TYPE
+from advgrads.adversarial.attacks.fgsm.fgsm import FgsmAttack
 from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
 from advgrads.models.base_model import Model
 
@@ -57,7 +58,7 @@ class PiFgsmAttackConfig(AttackConfig):
     """Parameter to amplifythe step size."""
 
 
-class PiFgsmAttack(Attack):
+class PiFgsmAttack(FgsmAttack):
     """The class of the PI-FGSM attack.
 
     Args:
@@ -66,7 +67,7 @@ class PiFgsmAttack(Attack):
     """
 
     config: PiFgsmAttackConfig
-    norm_allow_list: List[NormType] = ["l_inf"]
+    norm_allow_list: List[NORM_TYPE] = ["l_inf"]
 
     def run_attack(
         self, x: Tensor, y: Tensor, model: Model
@@ -84,11 +85,7 @@ class PiFgsmAttack(Attack):
             x_adv = x_adv.clone().detach().requires_grad_(True)
             model.zero_grad()
 
-            logits = model(x_adv)
-            loss = F.cross_entropy(logits, y)
-            if self.targeted:
-                loss *= -1
-            gradients = torch.autograd.grad(loss, [x_adv])[0].detach()
+            gradients = self.get_gradients(self.get_loss(x_adv, y, model), x_adv)
 
             amplification += alpha_beta * torch.sign(gradients)
             cut_noise = torch.clamp(

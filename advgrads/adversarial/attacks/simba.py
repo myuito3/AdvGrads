@@ -29,7 +29,7 @@ import torch
 import torch.nn as nn
 from torch import Tensor
 
-from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig, NormType
+from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig, NORM_TYPE
 from advgrads.adversarial.attacks.utils.losses import MarginLoss
 from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
 from advgrads.models.base_model import Model
@@ -56,7 +56,7 @@ class SimBAAttack(Attack):
     """
 
     config: SimBAAttackConfig
-    norm_allow_list: List[NormType] = ["l_2"]
+    norm_allow_list: List[NORM_TYPE] = ["l_2"]
 
     def __init__(self, config: SimBAAttackConfig) -> None:
         super().__init__(config)

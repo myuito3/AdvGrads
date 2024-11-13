@@ -30,7 +30,8 @@ import torch
 import torch.nn.functional as F
 from torch import Tensor
 
-from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig, NormType
+from advgrads.adversarial.attacks.base_attack import AttackConfig, NORM_TYPE
+from advgrads.adversarial.attacks.fgsm.i_fgsm import IFgsmAttack
 from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
 from advgrads.models.base_model import Model
 
@@ -45,7 +46,7 @@ class DiMiFgsmAttackConfig(AttackConfig):
     """Ratio of the length of one side of the transformed image to one of the original
     image. The default value is calculated w.r.t the ImageNet setting mentioned in the
     original paper (330/299 = 1.1036)."""
-    keep_dims: bool = False
+    keep_dims: bool = True
     """Whether to keep the original image size."""
     prob: float = 0.5
     """Probability of using diverse inputs."""
@@ -53,7 +54,7 @@ class DiMiFgsmAttackConfig(AttackConfig):
     """Momentum about the model."""
 
 
-class DiMiFgsmAttack(Attack):
+class DiMiFgsmAttack(IFgsmAttack):
     """The class of the DI-MI-FGSM attack.
 
     Args:
@@ -62,15 +63,18 @@ class DiMiFgsmAttack(Attack):
     """
 
     config: DiMiFgsmAttackConfig
-    norm_allow_list: List[NormType] = ["l_inf"]
+    norm_allow_list: List[NORM_TYPE] = ["l_inf"]
 
-    def input_diversity(self, x: Tensor) -> Tensor:
+    def apply_input_diversity(self, x: Tensor) -> Tensor:
         """Apply diverse input patterns, i.e., random transformations, on the input
         image x.
 
         Args:
             x: Images to be transformed.
         """
+        if torch.rand(1) > self.config.prob:
+            return x
+
         h, w = x.shape[2:]
         h_final = int(h * self.config.max_resolution_ratio)
         w_final = int(w * self.config.max_resolution_ratio)
@@ -92,32 +96,29 @@ class DiMiFgsmAttack(Attack):
         if self.config.keep_dims:
             x_pad = F.interpolate(x_pad, size=[h, w], mode="nearest")
 
-        return x_pad if torch.rand(1) < self.config.prob else x
+        return x_pad
 
     def run_attack(
         self, x: Tensor, y: Tensor, model: Model
     ) -> Dict[ResultHeadNames, Tensor]:
         x_adv = x
-        alpha = self.eps / self.max_iters
         accumulated_grads = torch.zeros_like(x)
 
         for _ in range(self.max_iters):
             x_adv = x_adv.clone().detach().requires_grad_(True)
             model.zero_grad()
 
-            logits = model(self.input_diversity(x_adv))
-            loss = F.cross_entropy(logits, y)
-            if self.targeted:
-                loss *= -1
-            gradients = torch.autograd.grad(loss, [x_adv])[0].detach()
+            gradients = self.get_gradients(
+                self.get_loss(self.apply_input_diversity(x_adv), y, model), x_adv
+            )
 
             gradients = gradients / torch.mean(
                 torch.abs(gradients), dim=(1, 2, 3), keepdims=True
             )
-            gradients = gradients + self.config.momentum * accumulated_grads
+            gradients += self.config.momentum * accumulated_grads
             accumulated_grads = gradients.clone().detach()
 
-            x_adv = x_adv + alpha * torch.sign(gradients)
+            x_adv = x_adv + self.alpha * torch.sign(gradients)
             x_adv = torch.clamp(x_adv, min=self.min_val, max=self.max_val)
 
         return {ResultHeadNames.X_ADV: x_adv}

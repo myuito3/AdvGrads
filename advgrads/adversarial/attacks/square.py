@@ -29,7 +29,7 @@ import torch
 import torch.nn as nn
 from torch import Tensor
 
-from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig, NormType
+from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig, NORM_TYPE
 from advgrads.adversarial.attacks.utils.losses import MarginLoss
 from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
 from advgrads.models.base_model import Model
@@ -54,7 +54,7 @@ class SquareAttack(Attack):
     """
 
     config: SquareAttackConfig
-    norm_allow_list: List[NormType] = ["l_inf"]
+    norm_allow_list: List[NORM_TYPE] = ["l_inf"]
 
     def __init__(self, config: SquareAttackConfig) -> None:
         super().__init__(config)

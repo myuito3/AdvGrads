@@ -27,7 +27,7 @@ from advgrads.configs.base_config import InstantiateConfig
 from advgrads.models.base_model import Model
 
 
-NormType = Literal["l_0", "l_2", "l_inf"]
+NORM_TYPE = Literal["l_0", "l_2", "l_inf"]
 
 
 @dataclass
@@ -44,7 +44,7 @@ class AttackConfig(InstantiateConfig):
     """Min value of image used to clip perturbed images."""
     max_val: float = 1.0
     """Max value of image used to clip perturbed images."""
-    norm: Optional[NormType] = None
+    norm: Optional[NORM_TYPE] = None
     """Norm bound of adversarial perturbations."""
     eps: float = 0.0
     """Radius of a l_p ball."""
@@ -62,7 +62,7 @@ class Attack:
     """
 
     config: AttackConfig
-    norm_allow_list: List[NormType]
+    norm_allow_list: List[NORM_TYPE]
 
     def __init__(self, config: AttackConfig, **kwargs) -> None:
         self.config = config

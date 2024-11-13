@@ -25,7 +25,8 @@ import torch
 import torch.nn.functional as F
 from torch import Tensor
 
-from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig, NormType
+from advgrads.adversarial.attacks.base_attack import AttackConfig, NORM_TYPE
+from advgrads.adversarial.attacks.fgsm.i_fgsm import IFgsmAttack
 from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
 from advgrads.models.base_model import Model
 
@@ -38,7 +39,7 @@ class PGDAttackConfig(AttackConfig):
     """Target class to instantiate."""
 
 
-class PGDAttack(Attack):
+class PGDAttack(IFgsmAttack):
     """The class of the PGD attack.
 
     Args:
@@ -47,14 +48,11 @@ class PGDAttack(Attack):
     """
 
     config: PGDAttackConfig
-    norm_allow_list: List[NormType] = ["l_inf"]
+    norm_allow_list: List[NORM_TYPE] = ["l_inf"]
 
     def run_attack(
         self, x: Tensor, y: Tensor, model: Model
     ) -> Dict[ResultHeadNames, Tensor]:
-        alpha = self.eps / self.max_iters
-
-        # Generate initial perturbations from a continuous uniform distribution.
         init_deltas = torch.empty_like(x).uniform_(-self.eps, self.eps)
         x_adv = torch.clamp(x + init_deltas, min=self.min_val, max=self.max_val)
 
@@ -62,13 +60,9 @@ class PGDAttack(Attack):
             x_adv = x_adv.clone().detach().requires_grad_(True)
             model.zero_grad()
 
-            logits = model(x_adv)
-            loss = F.cross_entropy(logits, y)
-            if self.targeted:
-                loss *= -1
-            gradients = torch.autograd.grad(loss, [x_adv])[0].detach()
+            gradients = self.get_gradients(self.get_loss(x_adv, y, model), x_adv)
 
-            x_adv = x_adv + alpha * torch.sign(gradients)
+            x_adv = x_adv + self.alpha * torch.sign(gradients)
             deltas = torch.clamp(x_adv - x, min=-self.eps, max=self.eps)
             x_adv = torch.clamp(x + deltas, min=self.min_val, max=self.max_val)
 
