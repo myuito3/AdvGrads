@@ -14,20 +14,20 @@ This repository is still under development. For more information, please contact
 
 ## 💻 Installation
 
-You can skip the installation steps below using the Dockerfile (recommended).
-
 ### Create environment
-AdvGrads requires `Python >= 3.9`. An example of creating an environment using Python venv:
+AdvGrads requires `Python >= 3.9`. The following is an example of building an environment using conda:
+
 ```bash
-py -3.9 -m venv [ENV_NAME]
+conda create --name advgrads -y python=3.9
+conda activate advgrads
+pip install --upgrade pip
 ```
 
 ### Dependencies
-After creating and activating your virtual environment, you can install necessary libraries via the requirements.txt.
+Install other packages including PyTorch with CUDA (this repo has been tested with CUDA 11.8).
 
 ```bash
-git clone https://github.com/myuito3/AdvGrads.git
-cd AdvGrads/
+pip install torch==2.1.2+cu118 torchvision==0.16.2+cu118 --extra-index-url https://download.pytorch.org/whl/cu118
 pip install -r requirements.txt
 ```
 
