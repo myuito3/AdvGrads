@@ -1,6 +1,6 @@
 seed: 42
-data: imagenet
-model: vgg16-imagenet
+dataset_name: imagenet
+model_name: vgg16-imagenet
 
 attacks:
   -

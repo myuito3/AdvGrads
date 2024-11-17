@@ -19,14 +19,14 @@ Url: https://arxiv.org/abs/1412.6572
 """
 
 from dataclasses import dataclass, field
-from typing import Callable, Dict, List, Type
+from typing import Callable, List, Type
 
 import torch
 import torch.nn.functional as F
 from torch import Tensor
 
 from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig, NORM_TYPE
-from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
+from advgrads.adversarial.attacks.utils.types import AttackOutputs
 from advgrads.models.base_model import Model
 
 
@@ -61,13 +61,11 @@ class FgsmAttack(Attack):
     def get_gradients(self, loss: Tensor, x: Tensor) -> Tensor:
         return torch.autograd.grad(loss, [x])[0].detach()
 
-    def run_attack(
-        self, x: Tensor, y: Tensor, model: Model
-    ) -> Dict[ResultHeadNames, Tensor]:
+    def run_attack(self, x: Tensor, y: Tensor, model: Model) -> AttackOutputs:
         x_adv = x.clone().detach().requires_grad_(True)
         model.zero_grad()
 
         gradients = self.get_gradients(self.get_loss(x_adv, y, model), x_adv)
         x_adv = x_adv + self.eps * torch.sign(gradients)
         x_adv = torch.clamp(x_adv, min=self.min_val, max=self.max_val)
-        return {ResultHeadNames.X_ADV: x_adv}
+        return AttackOutputs(x_adv=x_adv)

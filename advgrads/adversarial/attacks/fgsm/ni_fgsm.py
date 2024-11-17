@@ -22,15 +22,14 @@ Original code is referenced from https://github.com/JHL-HUST/SI-NI-FGSM
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Type
+from typing import List, Type
 
 import torch
-import torch.nn.functional as F
 from torch import Tensor
 
 from advgrads.adversarial.attacks.base_attack import AttackConfig, NORM_TYPE
 from advgrads.adversarial.attacks.fgsm.i_fgsm import IFgsmAttack
-from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
+from advgrads.adversarial.attacks.utils.types import AttackOutputs
 from advgrads.models.base_model import Model
 
 
@@ -55,9 +54,7 @@ class NiFgsmAttack(IFgsmAttack):
     config: NiFgsmAttackConfig
     norm_allow_list: List[NORM_TYPE] = ["l_inf"]
 
-    def run_attack(
-        self, x: Tensor, y: Tensor, model: Model
-    ) -> Dict[ResultHeadNames, Tensor]:
+    def run_attack(self, x: Tensor, y: Tensor, model: Model) -> AttackOutputs:
         x_adv = x
         accumulated_grads = torch.zeros_like(x)
 
@@ -77,4 +74,4 @@ class NiFgsmAttack(IFgsmAttack):
             x_adv = x_adv + self.alpha * torch.sign(gradients)
             x_adv = torch.clamp(x_adv, min=self.min_val, max=self.max_val)
 
-        return {ResultHeadNames.X_ADV: x_adv}
+        return AttackOutputs(x_adv=x_adv)

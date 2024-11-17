@@ -25,8 +25,9 @@ import torch
 from torch import Tensor
 
 from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig, NORM_TYPE
-from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
+from advgrads.adversarial.attacks.utils.types import AttackOutputs
 from advgrads.models.base_model import Model
+from advgrads.utils.printing import print_as_warning
 
 
 @dataclass
@@ -54,11 +55,13 @@ class DeepFoolAttack(Attack):
         super().__init__(config)
 
         if self.targeted:
-            raise ValueError("DeepFool does not support targeted attack.")
+            print_as_warning(f"{self.method} does not support targeted attack.")
+            self.config.targeted = False
         if self.eps > 0.0:
-            raise ValueError(
-                "DeepFool is a minimum-norm attack, not a norm-constrained attack."
+            print_as_warning(
+                f"{self.method} is a minimum-norm attack, not a norm-constrained attack."
             )
+            self.config.eps = 0.0
 
     def deepfool_single(self, x: Tensor, y: Tensor, model: Model) -> Tensor:
         """Single adversarial perturbation generation by DeepFool."""
@@ -111,9 +114,7 @@ class DeepFoolAttack(Attack):
 
         return delta
 
-    def run_attack(
-        self, x: Tensor, y: Tensor, model: Model
-    ) -> Dict[ResultHeadNames, Tensor]:
+    def run_attack(self, x: Tensor, y: Tensor, model: Model) -> AttackOutputs:
         x_adv = torch.zeros_like(x, device=x.device)
 
         for i_img in range(x.shape[0]):
@@ -127,18 +128,14 @@ class DeepFoolAttack(Attack):
                 (1 + self.config.eta) * delta + x_i, min=self.min_val, max=self.max_val
             )
 
-        return {ResultHeadNames.X_ADV: x_adv}
+        return AttackOutputs(x_adv=x_adv)
 
     def get_metrics_dict(
-        self, outputs: Dict[ResultHeadNames, Tensor], batch: Dict[str, Tensor]
+        self, outputs: AttackOutputs, x: Tensor, y: Tensor, succeed: Tensor, **kwargs
     ) -> Dict[str, Tensor]:
         metrics_dict = {}
-        succeed = outputs[ResultHeadNames.SUCCEED]
 
         # perturbation norm
-        l2_norm_succeed = torch.norm(
-            outputs[ResultHeadNames.X_ADV] - batch["images"], p=2, dim=[1, 2, 3]
-        )[succeed]
+        l2_norm_succeed = torch.norm(outputs.x_adv - x, p=2, dim=[1, 2, 3])[succeed]
         metrics_dict["l2_norm"] = l2_norm_succeed
-
         return metrics_dict

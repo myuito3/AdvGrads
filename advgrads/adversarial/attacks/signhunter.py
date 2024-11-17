@@ -28,7 +28,7 @@ from torch import Tensor
 
 from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig, NORM_TYPE
 from advgrads.adversarial.attacks.utils.losses import MarginLoss
-from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
+from advgrads.adversarial.attacks.utils.types import AttackOutputs
 from advgrads.models.base_model import Model
 
 
@@ -62,9 +62,7 @@ class SignHunterAttack(Attack):
         self.margin = MarginLoss(self.targeted)
 
     @torch.no_grad()
-    def run_attack(
-        self, x: Tensor, y: Tensor, model: Model
-    ) -> Dict[ResultHeadNames, Tensor]:
+    def run_attack(self, x: Tensor, y: Tensor, model: Model) -> AttackOutputs:
         n_dim = np.prod(x.shape[1:])
         n_queries = torch.zeros((x.shape[0]), dtype=torch.int16).to(x.device)
 
@@ -134,16 +132,13 @@ class SignHunterAttack(Attack):
                 if h == np.ceil(np.log2(n_dim)).astype(int) + 1:
                     h = 0
 
-        return {ResultHeadNames.X_ADV: x_adv, ResultHeadNames.QUERIES: n_queries}
+        return AttackOutputs(x_adv=x_adv, queries=n_queries)
 
     def get_metrics_dict(
-        self, outputs: Dict[ResultHeadNames, Tensor], batch: Dict[str, Tensor]
+        self, outputs: AttackOutputs, x: Tensor, y: Tensor, succeed: Tensor, **kwargs
     ) -> Dict[str, Tensor]:
         metrics_dict = {}
-        succeed = outputs[ResultHeadNames.SUCCEED]
 
         # query
-        queries_succeed = outputs[ResultHeadNames.QUERIES][succeed]
-        metrics_dict[ResultHeadNames.QUERIES_SUCCEED] = queries_succeed
-
+        metrics_dict["queries_succeed"] = outputs.queries[succeed]
         return metrics_dict

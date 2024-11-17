@@ -20,14 +20,14 @@ Url: https://arxiv.org/abs/1607.02533
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Type
+from typing import List, Type
 
 import torch
 from torch import Tensor
 
 from advgrads.adversarial.attacks.base_attack import AttackConfig, NORM_TYPE
 from advgrads.adversarial.attacks.fgsm.fgsm import FgsmAttack
-from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
+from advgrads.adversarial.attacks.utils.types import AttackOutputs
 from advgrads.models.base_model import Model
 
 
@@ -54,9 +54,7 @@ class IFgsmAttack(FgsmAttack):
     def alpha(self) -> float:
         return self.eps / self.max_iters
 
-    def run_attack(
-        self, x: Tensor, y: Tensor, model: Model
-    ) -> Dict[ResultHeadNames, Tensor]:
+    def run_attack(self, x: Tensor, y: Tensor, model: Model) -> AttackOutputs:
         x_adv = x
 
         for _ in range(self.max_iters):
@@ -67,4 +65,4 @@ class IFgsmAttack(FgsmAttack):
             x_adv = x_adv + self.alpha * torch.sign(gradients)
             x_adv = torch.clamp(x_adv, min=self.min_val, max=self.max_val)
 
-        return {ResultHeadNames.X_ADV: x_adv}
+        return AttackOutputs(x_adv=x_adv)

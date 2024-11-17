@@ -16,7 +16,7 @@
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 from advgrads.configs.base_config import InstantiateConfig
 from advgrads.utils.io import write_to_yaml
@@ -32,12 +32,10 @@ class ExperimentConfig(InstantiateConfig):
     """Experiment name."""
     method: Optional[str] = None
     """Alias for get_base_dir() method."""
-    data: Optional[str] = None
+    dataset_name: Optional[str] = None
     """Name of the dataset."""
-    model: Optional[str] = None
+    model_name: Optional[str] = None
     """Name of the model."""
-    attacks: Optional[List[dict]] = None
-    """List of attack parameters."""
     seed: Optional[int] = None
     """Seed of random number."""
     num_images: Optional[int] = None
@@ -50,7 +48,7 @@ class ExperimentConfig(InstantiateConfig):
     def set_experiment_name(self) -> None:
         """Set the experiment name."""
         if self.experiment_name is None:
-            self.experiment_name = "unnamed"
+            self.experiment_name = self.dataset_name
 
     def get_base_dir(self) -> Path:
         """Retrieve the base directory to set relative paths."""
@@ -63,6 +61,5 @@ class ExperimentConfig(InstantiateConfig):
         assert base_dir is not None
         base_dir.mkdir(parents=True, exist_ok=True)
 
-        delattr(self, "attacks")
-        output_path = base_dir / f"{self.model}.yaml"
+        output_path = base_dir / f"{self.model_name}.yaml"
         write_to_yaml(output_path, self)

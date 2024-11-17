@@ -21,9 +21,8 @@ from typing import Any, Dict, List, Literal, Optional, Type
 import torch
 from torch import Tensor
 
-from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
-from advgrads.adversarial.defenses.input_transform.base_defense import Defense
-from advgrads.configs.base_config import InstantiateConfig
+from advgrads.adversarial.attacks.utils.types import AttackOutputs
+from advgrads.configs.experiment_config import ExperimentConfig
 from advgrads.models.base_model import Model
 
 
@@ -31,13 +30,11 @@ NORM_TYPE = Literal["l_0", "l_2", "l_inf"]
 
 
 @dataclass
-class AttackConfig(InstantiateConfig):
+class AttackConfig(ExperimentConfig):
     """The base configuration class for attack methods."""
 
     _target: Type = field(default_factory=lambda: Attack)
     """Target class to instantiate."""
-    method: Optional[str] = None
-    """Method name."""
     targeted: bool = False
     """Whether or not to perform targeted attacks."""
     min_val: float = 0.0
@@ -75,10 +72,10 @@ class Attack:
             )
         if self.norm not in self.norm_allow_list:
             raise ValueError(
-                f"{self.method} does not support {self.norm} perturbation norm."
+                f"{self.method} does not support {self.norm} perturbation norm attack."
             )
 
-    def __call__(self, *args: Any, **kwargs: Any) -> Dict[ResultHeadNames, Tensor]:
+    def __call__(self, *args: Any, **kwargs: Any) -> AttackOutputs:
         return self.get_outputs(*args, **kwargs)
 
     @property
@@ -110,9 +107,7 @@ class Attack:
         return self.config.method
 
     @abstractmethod
-    def run_attack(
-        self, x: Tensor, y: Tensor, model: Model, **kwargs
-    ) -> Dict[ResultHeadNames, Tensor]:
+    def run_attack(self, x: Tensor, y: Tensor, model: Model, **kwargs) -> AttackOutputs:
         """Run the attack to search adversarial examples.
 
         Args:
@@ -131,28 +126,26 @@ class Attack:
             x: Original images.
             x_adv: Perturbed images.
         """
-        if self.eps > 0.0:
-            deltas = x_adv - x
-            if self.norm == "l_inf":
-                real = (
-                    deltas.abs().max().half()
-                )  # ignore slight differences within the decimal point
-                msg = f"Perturbations beyond the l_inf sphere ({real})."
-            elif self.norm == "l_2":
-                real = torch.norm(deltas.view(x.shape[0], -1), p=2, dim=-1).max()
-                msg = f"Perturbations beyond the l_2 sphere ({real})."
-            elif self.norm == "l_0":
-                raise NotImplementedError
+        if self.eps == 0.0:
+            return
 
-            assert real <= self.eps, msg
+        deltas = x_adv - x
+        if self.norm == "l_inf":
+            real = (
+                deltas.abs().max().half()
+            )  # ignore slight differences within the decimal point
+            msg = f"Perturbations beyond the l_inf sphere ({real})."
+        elif self.norm == "l_2":
+            real = torch.norm(deltas.view(x.shape[0], -1), p=2, dim=-1).max()
+            msg = f"Perturbations beyond the l_2 sphere ({real})."
+        elif self.norm == "l_0":
+            raise NotImplementedError
+
+        assert real <= self.eps, msg
 
     def get_outputs(
-        self,
-        batch: Dict[str, Tensor],
-        model: Model,
-        thirdparty_defense: Optional[Defense] = None,
-        **kwargs,
-    ) -> Dict[ResultHeadNames, Tensor]:
+        self, x: Tensor, y: Tensor, model: Model, **kwargs
+    ) -> AttackOutputs:
         """Returns raw attack results processed.
 
         Args:
@@ -160,30 +153,12 @@ class Attack:
             model: A model to be attacked.
             thirdparty_defense: Thirdparty defense method instance.
         """
-        x, y = batch["images"], batch["labels"]
         attack_outputs = self.run_attack(x, y, model, **kwargs)
-        x_adv = attack_outputs[ResultHeadNames.X_ADV]
-        self.sanity_check(x, x_adv)
-
-        # If a defensive method is defined, the process is performed here. This
-        # corresponds to Section 5.2 (GRAY BOX: IMAGE TRANSFORMATIONS AT TEST TIME) in
-        # the paper of Guo et al [https://arxiv.org/pdf/1711.00117.pdf].
-        with torch.no_grad():
-            if thirdparty_defense is not None:
-                logits = model(thirdparty_defense(x_adv))
-            else:
-                logits = model(x_adv)
-        preds = torch.argmax(logits, dim=-1)
-        succeed = (preds == y) if self.targeted else (preds != y)
-
-        attack_outputs[ResultHeadNames.PREDS] = preds
-        attack_outputs[ResultHeadNames.SUCCEED] = succeed
-        attack_outputs[ResultHeadNames.NUM_SUCCEED] = succeed.sum()
-
+        self.sanity_check(x, attack_outputs.x_adv)
         return attack_outputs
 
     def get_metrics_dict(
-        self, outputs: Dict[ResultHeadNames, Tensor], batch: Dict[str, Tensor]
+        self, outputs: AttackOutputs, x: Tensor, y: Tensor, **kwargs
     ) -> Dict[str, Tensor]:
         """Compute and returns metrics.
 

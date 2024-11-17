@@ -1,6 +1,6 @@
 seed: 42
-data: mnist
-model: ptpg-mnist
+dataset_name: mnist
+model_name: ptpg-mnist
 
 attacks:
   -

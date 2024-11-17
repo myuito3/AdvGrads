@@ -23,7 +23,7 @@ https://github.com/qilong-zhang/Patch-wise-iterative-attack/tree/master/Pytorch%
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Type
+from typing import List, Type
 
 import torch
 import torch.nn.functional as F
@@ -31,7 +31,7 @@ from torch import Tensor
 
 from advgrads.adversarial.attacks.base_attack import AttackConfig, NORM_TYPE
 from advgrads.adversarial.attacks.fgsm.fgsm import FgsmAttack
-from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
+from advgrads.adversarial.attacks.utils.types import AttackOutputs
 from advgrads.models.base_model import Model
 
 
@@ -69,9 +69,7 @@ class PiFgsmAttack(FgsmAttack):
     config: PiFgsmAttackConfig
     norm_allow_list: List[NORM_TYPE] = ["l_inf"]
 
-    def run_attack(
-        self, x: Tensor, y: Tensor, model: Model
-    ) -> Dict[ResultHeadNames, Tensor]:
+    def run_attack(self, x: Tensor, y: Tensor, model: Model) -> AttackOutputs:
         x_adv = x
         alpha = self.eps / self.max_iters
         alpha_beta = alpha * self.config.amplification
@@ -100,4 +98,4 @@ class PiFgsmAttack(FgsmAttack):
             deltas = torch.clamp(x_adv - x, min=-self.eps, max=self.eps)
             x_adv = torch.clamp(x + deltas, min=self.min_val, max=self.max_val)
 
-        return {ResultHeadNames.X_ADV: x_adv}
+        return AttackOutputs(x_adv=x_adv)

@@ -49,12 +49,21 @@ def get_attack_config_class(name: str) -> Type[AttackConfig]:
     return attack_class_dict[name]
 
 
-def get_attack(name: str, attack_dict: Optional[dict] = None, **kwargs) -> Attack:
-    attack_config: AttackConfig = get_attack_config_class(name)(**kwargs)
+def get_attack(attack_dict: dict) -> Attack:
+    attack_config: AttackConfig = get_attack_config_class(attack_dict["method"])(
+        **attack_dict
+    )
     if attack_dict is not None:
         attack_config.__dict__.update(attack_dict)
     attack = attack_config.setup()
     return attack
+
+
+def get_attack_config(attack_dict: dict) -> AttackConfig:
+    attack_config: AttackConfig = get_attack_config_class(attack_dict["method"])(
+        **attack_dict
+    )
+    return attack_config
 
 
 def get_defense_config_class(name: str) -> Type[DefenseConfig]:

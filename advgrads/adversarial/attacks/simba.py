@@ -31,8 +31,9 @@ from torch import Tensor
 
 from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig, NORM_TYPE
 from advgrads.adversarial.attacks.utils.losses import MarginLoss
-from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
+from advgrads.adversarial.attacks.utils.types import AttackOutputs
 from advgrads.models.base_model import Model
+from advgrads.utils.printing import print_as_warning
 
 
 @dataclass
@@ -62,14 +63,16 @@ class SimBAAttack(Attack):
         super().__init__(config)
 
         if self.eps > 0.0:
-            raise ValueError(
-                "SimBA is a minimum-norm attack, not a norm-constrained attack."
+            print_as_warning(
+                f"{self.method} is a minimum-norm attack, not a norm-constrained attack."
             )
+            self.config.eps = 0.0
         if self.max_iters > 0:
-            raise ValueError(
-                "The maximum number of queries for SimBA is controlled by the "
+            print_as_warning(
+                f"The maximum number of queries for {self.method} is controlled by the "
                 "freq_dims parameter in the config."
             )
+            self.config.max_iters = 0
 
         self.loss = (
             nn.CrossEntropyLoss(reduction="none")
@@ -136,9 +139,7 @@ class SimBAAttack(Attack):
         return idx_improved
 
     @torch.no_grad()
-    def run_attack(
-        self, x: Tensor, y: Tensor, model: Model
-    ) -> Dict[ResultHeadNames, Tensor]:
+    def run_attack(self, x: Tensor, y: Tensor, model: Model) -> AttackOutputs:
         c, h, w = x.shape[1:]
         n_queries = torch.zeros((x.shape[0]), dtype=torch.int16).to(x.device)
 
@@ -186,22 +187,18 @@ class SimBAAttack(Attack):
             n_queries[idx_to_fool] += 1
 
         x_best, _, _, _ = self.get_data(torch.arange(x.shape[0]))
-        return {ResultHeadNames.X_ADV: x_best, ResultHeadNames.QUERIES: n_queries}
+        return AttackOutputs(x_adv=x_best, queries=n_queries)
 
     def get_metrics_dict(
-        self, outputs: Dict[ResultHeadNames, Tensor], batch: Dict[str, Tensor]
+        self, outputs: AttackOutputs, x: Tensor, y: Tensor, succeed: Tensor, **kwargs
     ) -> Dict[str, Tensor]:
         metrics_dict = {}
-        succeed = outputs[ResultHeadNames.SUCCEED]
 
         # query
-        queries_succeed = outputs[ResultHeadNames.QUERIES][succeed]
-        metrics_dict[ResultHeadNames.QUERIES_SUCCEED] = queries_succeed
+        metrics_dict["queries_succeed"] = outputs.queries[succeed]
 
         # perturbation norm
-        l2_norm_succeed = torch.norm(
-            outputs[ResultHeadNames.X_ADV] - batch["images"], p=2, dim=[1, 2, 3]
-        )[succeed]
+        l2_norm_succeed = torch.norm(outputs.x_adv - x, p=2, dim=[1, 2, 3])[succeed]
         metrics_dict["l2_norm"] = l2_norm_succeed
 
         return metrics_dict

@@ -19,15 +19,14 @@ Url: https://arxiv.org/abs/1706.06083
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Type
+from typing import List, Type
 
 import torch
-import torch.nn.functional as F
 from torch import Tensor
 
 from advgrads.adversarial.attacks.base_attack import AttackConfig, NORM_TYPE
 from advgrads.adversarial.attacks.fgsm.i_fgsm import IFgsmAttack
-from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
+from advgrads.adversarial.attacks.utils.types import AttackOutputs
 from advgrads.models.base_model import Model
 
 
@@ -50,9 +49,7 @@ class PGDAttack(IFgsmAttack):
     config: PGDAttackConfig
     norm_allow_list: List[NORM_TYPE] = ["l_inf"]
 
-    def run_attack(
-        self, x: Tensor, y: Tensor, model: Model
-    ) -> Dict[ResultHeadNames, Tensor]:
+    def run_attack(self, x: Tensor, y: Tensor, model: Model) -> AttackOutputs:
         init_deltas = torch.empty_like(x).uniform_(-self.eps, self.eps)
         x_adv = torch.clamp(x + init_deltas, min=self.min_val, max=self.max_val)
 
@@ -66,4 +63,4 @@ class PGDAttack(IFgsmAttack):
             deltas = torch.clamp(x_adv - x, min=-self.eps, max=self.eps)
             x_adv = torch.clamp(x + deltas, min=self.min_val, max=self.max_val)
 
-        return {ResultHeadNames.X_ADV: x_adv}
+        return AttackOutputs(x_adv=x_adv)

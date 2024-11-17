@@ -31,7 +31,7 @@ from torch import Tensor
 
 from advgrads.adversarial.attacks.base_attack import Attack, AttackConfig, NORM_TYPE
 from advgrads.adversarial.attacks.utils.losses import MarginLoss
-from advgrads.adversarial.attacks.utils.result_heads import ResultHeadNames
+from advgrads.adversarial.attacks.utils.types import AttackOutputs
 from advgrads.models.base_model import Model
 
 
@@ -133,10 +133,10 @@ class SquareAttack(Attack):
                 torch.sum(torch.abs(x_new_window - x_best_curr_window) < 10**-7)
                 == c * s * s
             ):
-                deltas[
-                    i_img, :, center_h : center_h + s, center_w : center_w + s
-                ] = torch.from_numpy(
-                    np.random.choice([-self.eps, self.eps], size=[c, 1, 1])
+                deltas[i_img, :, center_h : center_h + s, center_w : center_w + s] = (
+                    torch.from_numpy(
+                        np.random.choice([-self.eps, self.eps], size=[c, 1, 1])
+                    )
                 )
                 x_new_window = torch.clamp(
                     x_curr_window + looking_window(deltas), self.min_val, self.max_val
@@ -145,9 +145,7 @@ class SquareAttack(Attack):
         return deltas
 
     @torch.no_grad()
-    def run_attack(
-        self, x: Tensor, y: Tensor, model: Model
-    ) -> Dict[ResultHeadNames, Tensor]:
+    def run_attack(self, x: Tensor, y: Tensor, model: Model) -> AttackOutputs:
         c, h, w = x.shape[1:]
         n_queries = torch.zeros((x.shape[0]), dtype=torch.int16).to(x.device)
 
@@ -190,16 +188,13 @@ class SquareAttack(Attack):
             x_best[idx_to_fool] = idx_improved * x_new + ~idx_improved * x_best_curr
             n_queries[idx_to_fool] += 1
 
-        return {ResultHeadNames.X_ADV: x_best, ResultHeadNames.QUERIES: n_queries}
+        return AttackOutputs(x_adv=x_best, queries=n_queries)
 
     def get_metrics_dict(
-        self, outputs: Dict[ResultHeadNames, Tensor], batch: Dict[str, Tensor]
+        self, outputs: AttackOutputs, x: Tensor, y: Tensor, succeed: Tensor, **kwargs
     ) -> Dict[str, Tensor]:
         metrics_dict = {}
-        succeed = outputs[ResultHeadNames.SUCCEED]
 
         # query
-        queries_succeed = outputs[ResultHeadNames.QUERIES][succeed]
-        metrics_dict[ResultHeadNames.QUERIES_SUCCEED] = queries_succeed
-
+        metrics_dict["queries_succeed"] = outputs.queries[succeed]
         return metrics_dict
